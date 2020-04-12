@@ -25,7 +25,6 @@ public class MapLocation {
 		try {
 			obj = new JSONParser().parse(new FileReader(loc+json));
 		} catch (IOException | ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         JSONObject jo = (JSONObject) obj; 
