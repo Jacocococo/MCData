@@ -1,0 +1,8 @@
+.metadata
+bin/
+local.properties
+.settings/
+.classpath
+
+# Locally stored "Eclipse launch configurations"
+*.launch
