@@ -1,15 +1,11 @@
 package com.jacoco.mcdata;
 
-public class Main extends Gui {
-	
-	public void main() {  
-		
-		new Gui();
-		
-	} 
+import com.jacoco.mcdata.files.Config;
 
-	public static void main(String[] args) {
-	    new Main();
+public class Main {
 
+	public static void main(String[] args) throws Exception {
+		new Config();
+		
 	}
 }
