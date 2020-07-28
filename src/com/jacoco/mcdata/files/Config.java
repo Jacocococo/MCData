@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import com.jacoco.mcdata.DarkMode;
 import com.jacoco.mcdata.Gui;
 import com.jacoco.mcdata.Strings;
 
@@ -36,30 +35,36 @@ public class Config {
 		if(exists == false) {
 			sources = Files.createDirectories(sourcesPath);
 			ExportPath.exportDirPath = Paths.get(sourcesPath+"\\Export");
+			export = sourcesPath+"\\Export";
 			ExportPath.exportDir = Files.createDirectories(ExportPath.exportDirPath);
 			setupConfig();
+			
+			new Gui(254, 254, 254, 0, 0, 0, Strings.light);
+			Gui.ep.setText(ExportPath.exportDir.toString());
+			System.out.println(ExportPath.exportDir.toString());
 		} else {
-
 			Object obj = new JSONParser().parse(new FileReader(cfg));
 			
 			JSONObject jo = (JSONObject) obj; 
 	        		
 			String mode = jo.get("mode").toString();
-						
+			
+			try{
+				export = jo.get("Export Path").toString();
+			} catch (NullPointerException e) {
+				export = sourcesPath+"\\Export";
+			}
+							
 			switch(mode) {
 			
 				// set color ints and label Strings when Config.json has "Light Mode"
-				case Strings.light : DarkMode.setValues(254, 254, 254, 0, 0, 0, Strings.light);
+				case Strings.light : new Gui(254, 254, 254, 0, 0, 0, Strings.light);
 				break;
 					
 				// set color ints and label Strings when Config.json has "Dark Mode"
-				case Strings.dark : DarkMode.setValues(0, 0, 50, 254, 254, 254, Strings.dark);
+				case Strings.dark : new Gui(0, 0, 50, 254, 254, 254, Strings.dark);
 				break; 
 			}
-			
-			export = jo.get("Export Path").toString();
-			ExportPath.exportDirPath = Paths.get(export);
-			Gui.ep.setText(export);
 		}
 	}
 	
@@ -70,7 +75,6 @@ public class Config {
         JSONObject jo = new JSONObject(); 
         
         jo.put("mode", Strings.light);
-        
         jo.put("Export Path", ExportPath.exportDirPath.toString());
         	          
         PrintWriter pw = new PrintWriter(sourcesPath+"\\"+Strings.config); 
