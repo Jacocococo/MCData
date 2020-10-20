@@ -6,7 +6,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 
 import javax.swing.BorderFactory;
@@ -43,7 +42,7 @@ public class Deobfuscation {
 
 	public static void export() throws IOException, MappingParseException {
 		
-		export = Paths.get(ExportPath.exportDirPath+"\\"+MapLocation.fn.substring(1, MapLocation.fn.length())+Strings.dotjar);
+		export = ExportPath.exportDirPath.resolve(MapLocation.fn+Strings.dotjar);
 
 		profile = EnigmaProfile.EMPTY;
 
