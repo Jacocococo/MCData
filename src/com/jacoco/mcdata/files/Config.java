@@ -18,30 +18,25 @@ public class Config {
 	public static File jarDir;
 	
 	public static Path sourcesPath;
-	public static Path sources;
 	
 	public static File cfg;
 	
 	public static String export;
 	
 	public Config() throws Exception {
-
-		jarDir = new File(ClassLoader.getSystemClassLoader().getResource(".").getPath());
 		
-		sourcesPath = Paths.get(jarDir+"\\Sources");
+		sourcesPath = Paths.get(ClassLoader.getSystemClassLoader().getResource(".").getPath().substring(1)).resolve("Sources");
 		
-		cfg = new File(sourcesPath+"\\"+Strings.config);
+		cfg = sourcesPath.resolve(Strings.config).toFile();
 		boolean exists = cfg.exists(); 
 		if(exists == false) {
-			sources = Files.createDirectories(sourcesPath);
-			ExportPath.exportDirPath = Paths.get(sourcesPath+"\\Export");
-			export = sourcesPath+"\\Export";
+			Files.createDirectories(sourcesPath);
+			ExportPath.exportDirPath = sourcesPath.resolve("Export");
+			export = ExportPath.exportDirPath.toString();
 			ExportPath.exportDir = Files.createDirectories(ExportPath.exportDirPath);
 			setupConfig();
 			
 			new Gui(254, 254, 254, 0, 0, 0, Strings.light);
-			Gui.ep.setText(ExportPath.exportDir.toString());
-			System.out.println(ExportPath.exportDir.toString());
 		} else {
 			Object obj = new JSONParser().parse(new FileReader(cfg));
 			
@@ -52,7 +47,7 @@ public class Config {
 			try{
 				export = jo.get("Export Path").toString();
 			} catch (NullPointerException e) {
-				export = sourcesPath+"\\Export";
+				export = sourcesPath.resolve("Export").toString();
 			}
 							
 			switch(mode) {
@@ -77,7 +72,7 @@ public class Config {
         jo.put("mode", Strings.light);
         jo.put("Export Path", ExportPath.exportDirPath.toString());
         	          
-        PrintWriter pw = new PrintWriter(sourcesPath+"\\"+Strings.config); 
+        PrintWriter pw = new PrintWriter(cfg); 
         pw.write(jo.toJSONString()); 
           
         pw.flush(); 

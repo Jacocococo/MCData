@@ -9,7 +9,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 import org.json.simple.JSONObject;
@@ -25,13 +24,11 @@ public class MapLocation {
 	public static String fn;
 		
 	// get jar file and map
-	public MapLocation(String loc, Path tmpDir) throws IOException {
+	public MapLocation(Path loc, Path tmpDir) throws IOException {
 		
 		// values needed
-		int feLength = loc.length();
-		int lastBackslash = loc.lastIndexOf('\\');
-		fn = loc.substring(lastBackslash, feLength);
-		jar = Paths.get(loc+fn+Strings.dotjar);
+		fn = loc.getFileName().toString();
+		jar = loc.resolve(fn+Strings.dotjar);
 		String json = fn+Strings.dotjson;
 				
 		// finding the map

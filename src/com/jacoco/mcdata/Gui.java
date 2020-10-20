@@ -115,7 +115,7 @@ public class Gui {
 					fe.setText(fd.getDirectory());
 					int fel = fe.getText().length();
 					fe.setText(fd.getDirectory().substring(0, fel - 1));
-					new MapLocation(fe.getText(), tmpDir);
+					new MapLocation(Paths.get(fe.getText()), tmpDir);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				} catch (NullPointerException e2) {}
