@@ -9,7 +9,7 @@ MCData uses assets from following software:
 - [Enigma](https://github.com/FabricMC/Enigma) - LGPL-v3 License
 - [JSON Simple](https://github.com/fangyidong/json-simple) - Apache-2.0 License
 
-## [Installation](https://github.com/Jacocococo/MCData/releases/tag/v1.0)
+## [Installation](https://github.com/Jacocococo/MCData/releases/)
 
 MCData requires Java SE 8, version 52
 
