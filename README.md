@@ -1,25 +1,9 @@
-# MCData
-MCData is a program, that can automatically export a deobfuscated verison of Minecraft.
+This is the branch for v2.0 beta
 
-## License
+v2.0 will implement [JD Gui](https://github.com/java-decompiler/jd-gui) into MCData and automatically load jars
 
-MCdata is distributed under the [LGPL-3.0](LICENSE).
+Like the alpha, this version uses a few libraries that the previous version didn't. These libraries needs to be added to the project as jars
 
-MCData uses assets from following software:
-- [Enigma](https://github.com/FabricMC/Enigma) - LGPL-v3 License
-- [JSON Simple](https://github.com/fangyidong/json-simple) - Apache-2.0 License
-
-## [Installation](https://github.com/Jacocococo/MCData/releases/)
-
-MCData requires Java SE 8, version 52
-
-The first time you launch MCData.jar, it will create a folder called Sources, with a Config file and Export directory inside
-
-## How to use
-
-The directory of the Minecraft version you want to deobfuscate shall be selected in the "Choose Version Folder" section. Then an Export path needs to be set. After that, click "Export", and a Deobfuscated version of Minecraft will be created at the Export folder you selected.
- 
- ## You may also like
- 
- For deobfuscating other Jar files than Minecraft Versions, I would recommend:
- - [Enigma](https://github.com/FabricMC/Enigma)
+- [antlr-4.5](https://www.antlr.org/download/antlr-4.5-complete.jar)
+- [rsyntaxtextarea-3.0.4](https://jar-download.com/artifacts/com.fifesoft/rsyntaxtextarea/3.0.4/source-code)
+- [JD-Core-1.1.3](https://github.com/java-decompiler/jd-core/releases/download/v1.1.3/jd-core-1.1.3.jar)

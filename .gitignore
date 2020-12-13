@@ -3,6 +3,7 @@ bin/
 local.properties
 .settings/
 .classpath
+Sources
 
 # Locally stored "Eclipse launch configurations"
 *.launch

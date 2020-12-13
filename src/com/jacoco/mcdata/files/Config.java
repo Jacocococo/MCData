@@ -2,81 +2,109 @@ package com.jacoco.mcdata.files;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONValue;
 
-import com.jacoco.mcdata.Gui;
-import com.jacoco.mcdata.Strings;
+import com.jacoco.mcdata.Theme;
 
 public class Config {
 
-	public static File jarDir;
+	private String fn = "Config.json";
 	
-	public static Path sourcesPath;
+	private JSONObject jo;
 	
-	public static File cfg;
+	private Path sourcesPath;
+	private File cfg;
 	
-	public static String export;
+	private Theme thm;
+	private String theme;
+	private Path export;
 	
-	public Config() throws Exception {
+	public Config() {
+		this.sourcesPath = Paths.get(ClassLoader.getSystemClassLoader().getResource(".").getPath().substring(1)).resolve("Sources");
+		this.cfg = this.sourcesPath.resolve(fn).toFile();
 		
-		sourcesPath = Paths.get(ClassLoader.getSystemClassLoader().getResource(".").getPath().substring(1)).resolve("Sources");
-		
-		cfg = sourcesPath.resolve(Strings.config).toFile();
-		boolean exists = cfg.exists(); 
-		if(exists == false) {
-			Files.createDirectories(sourcesPath);
-			ExportPath.exportDirPath = sourcesPath.resolve("Export");
-			export = ExportPath.exportDirPath.toString();
-			ExportPath.exportDir = Files.createDirectories(ExportPath.exportDirPath);
-			setupConfig();
-			
-			new Gui(254, 254, 254, 0, 0, 0, Strings.light);
-		} else {
-			Object obj = new JSONParser().parse(new FileReader(cfg));
-			
-			JSONObject jo = (JSONObject) obj; 
-	        		
-			String mode = jo.get("mode").toString();
-			
-			try{
-				export = jo.get("Export Path").toString();
-			} catch (NullPointerException e) {
-				export = sourcesPath.resolve("Export").toString();
+		try {
+
+			if(!cfg.exists()) {
+				Files.createDirectories(this.sourcesPath);
+				this.export = this.sourcesPath.resolve("Export");
+				Files.createDirectories(this.export);
+				setupConfig(this.cfg);
+				this.thm = Theme.LIGHT;
+			} else {
+				this.jo = (JSONObject) JSONValue.parse(new FileReader(this.cfg)); 
+				this.theme = jo.get("theme").toString();
+
+				try{
+					export = Paths.get(jo.get("Export Path").toString());
+				} catch (NullPointerException e) {
+					export = this.sourcesPath.resolve("Export");
+				}
+				
+				switch(this.theme) {
+					case "Light Mode" : this.thm = Theme.LIGHT;
+					break;
+					case "Dark Mode" : this.thm = Theme.DARK;
+					break; 
+				}
 			}
-							
-			switch(mode) {
-			
-				// set color ints and label Strings when Config.json has "Light Mode"
-				case Strings.light : new Gui(254, 254, 254, 0, 0, 0, Strings.light);
-				break;
-					
-				// set color ints and label Strings when Config.json has "Dark Mode"
-				case Strings.dark : new Gui(0, 0, 50, 254, 254, 254, Strings.dark);
-				break; 
-			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static void setupConfig() throws Exception {
+	private void setupConfig(File path) throws IOException {
 		// create Config.json
-		
-        JSONObject jo = new JSONObject(); 
+        this.jo = new JSONObject(); 
         
-        jo.put("mode", Strings.light);
-        jo.put("Export Path", ExportPath.exportDirPath.toString());
-        	          
-        PrintWriter pw = new PrintWriter(cfg); 
-        pw.write(jo.toJSONString()); 
-          
-        pw.flush(); 
-        pw.close(); 
+        jo.put("theme", "Light Mode");
+        jo.put("Export Path", this.export.toString());
+        
+        FileWriter writer = new FileWriter(cfg);
+        writer.write(jo.toJSONString()); 
+        writer.close(); 
 	}
 	
+	public Path getExportPath() {
+		return this.export;
+	}
+	
+	public Theme getTheme() {
+		return this.thm;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setExportPath(String path) {
+		try {
+			this.export = Paths.get(path);
+			this.jo.replace("Export Path", path);
+			FileWriter writer = new FileWriter(this.cfg);
+		    writer.write(this.jo.toJSONString());
+		    writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setTheme(String color) {
+		try {
+			this.thm = Theme.getThemeFromName(color);
+		    this.jo.replace("theme", color);
+			FileWriter writer = new FileWriter(this.cfg);
+		    writer.write(this.jo.toJSONString());
+		    writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

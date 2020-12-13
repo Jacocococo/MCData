@@ -1,58 +1,76 @@
 package com.jacoco.mcdata;
 
-import java.awt.Button;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FileDialog;
-import java.awt.Frame;
-import java.awt.Label;
-import java.awt.TextField;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import org.jd.gui.JDGui;
 
 import com.jacoco.mcdata.files.Config;
-import com.jacoco.mcdata.files.ExportPath;
-import com.jacoco.mcdata.files.MapLocation;
+import com.jacoco.mcdata.files.Deobfuscation;
+
+import cuchaz.enigma.EnigmaProfile;
+import cuchaz.enigma.translation.mapping.serde.MappingFormat;
 
 public class Gui {
 
-	public static Frame gui;
-
-	private static Dimension dim;
-	private static int y;
+	private JFrame gui;
+	private JPanel initPanel;
+	private BorderLayout layout;
+	
+	private Config cfg;
+	private Theme theme;
+	private Deobfuscation deobf;
 	
 	private Color background;
 	private Color text;
 	private Color button;
-	
-	private Button cls;
-	
-	private Label feLabel;
-	private TextField fe;
-	
-	private Label epLabel;
-	public static TextField ep;
-	
-	private Button thm;
-	
-	private Button exportJar;
 		
-	public Gui(int br, int bg, int bb, int tr, int tg, int tb, String mode) throws IOException, InterruptedException {
+	private JLabel versionChooserLabel;
+	private JTextField versionChooser;
+	
+	private JLabel exportPathLable;
+	private JTextField exportPath;
+	
+	private JDGui jd;
+	
+	private JButton thm;
+	
+	private JButton exportJar;
+	
+	private JButton cls;
 
-		setColors(br, bg, bb, tr, tg, tb);
+	public Gui(Theme theme, Config cfg) {
 
-		gui = new Frame(Strings.name);
+		this.theme = theme;
+		this.cfg = cfg;
+		this.deobf = new Deobfuscation(this, EnigmaProfile.EMPTY, MappingFormat.PROGUARD);
+		
+		this.background = this.theme.getBg();
+		this.text = this.theme.getText();
+		this.button = this.theme.getBtn();
+		
+		this.gui = new JFrame("MCData");
+		this.initPanel = new JPanel();
 
 		// coordinates
 		int sizeX = 600;
@@ -62,63 +80,42 @@ public class Gui {
 		int centerX = screenSize.width / 2 - sizeX / 2;
 		int centerY = screenSize.height / 2 - sizeY / 2 - 25;
 
+		this.layout = new BorderLayout();
+		gui.setLayout(this.layout);
+		
+		gui.setLocation(centerX, centerY);
 		gui.setSize(sizeX, sizeY);
-
-		// add "close" button
-		cls = new Button(Strings.close);
-		cls.setBounds(gui.getWidth() / 2 + 10, gui.getHeight() / 7 * 5, gui.getWidth()/6, 30);
-		cls.setForeground(text);
-		cls.setBackground(button);
-		gui.add(cls);
-		cls.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				onClose();
-			}
-		});
+		
+		// add the init panel
+		initPanel.setLayout(null);
+		initPanel.setBackground(this.background);
 
 		/*
-		 * file explorer
+		 * version chooser
 		 */
 
 		// label
-		feLabel = new Label("Choose Version Folder");
-		feLabel.setForeground(text);
-		feLabel.setLocation(gui.getWidth() / 12, gui.getHeight() / 4 - 20);
-		feLabel.setSize(500, 20);
-		gui.add(feLabel);
+		versionChooserLabel = new JLabel("Choose Version Folder");
+		versionChooserLabel.setForeground(text);
+		versionChooserLabel.setLocation(initPanel.getWidth() / 12, initPanel.getHeight() / 4 - 20);
+		versionChooserLabel.setSize(500, 20);
+		initPanel.add(versionChooserLabel);
 
 		// text field
-		Path tmpDir = Files.createTempDirectory(Strings.name + "_");
+		versionChooser = new JTextField("Choose Folder");
+		versionChooser.setBounds(initPanel.getWidth() / 12, initPanel.getHeight() / 4, initPanel.getWidth() / 6 * 5, 30);
+		versionChooser.setForeground(text);
+		versionChooser.setBackground(background);
+		initPanel.add(versionChooser);
+		versionChooser.addMouseListener(new MouseAdapter() {
 
-		fe = new TextField(Strings.file);
-		fe.setBounds(gui.getWidth() / 12, gui.getHeight() / 4, gui.getWidth() / 6 * 5, 30);
-		fe.setForeground(text);
-		fe.setBackground(background);
-		gui.add(fe);
-		fe.addMouseListener(new MouseListener() {
-
-			public void mouseReleased(MouseEvent e) {}
-
-			public void mousePressed(MouseEvent e) {}
-
-			public void mouseExited(MouseEvent e) {}
-
-			public void mouseEntered(MouseEvent e) {}
-
-			@Override
 			public void mouseClicked(MouseEvent e) {
-				try {
-					FileDialog fd = new FileDialog(gui, Strings.file, FileDialog.LOAD);
-					fd.setVisible(true);
-					fe.setText(fd.getDirectory());
-					int fel = fe.getText().length();
-					fe.setText(fd.getDirectory().substring(0, fel - 1));
-					new MapLocation(Paths.get(fe.getText()), tmpDir);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				} catch (NullPointerException e2) {}
+				FileDialog fd = new FileDialog(gui, "Choose Folder", FileDialog.LOAD);
+				fd.setVisible(true);
+				Path path = Paths.get(fd.getDirectory());
+				versionChooser.setText(path.toString());
+
+				Versions.add(new Version(path));
 			}
 		});
 
@@ -127,172 +124,155 @@ public class Gui {
 		 */
 
 		// label
-		epLabel = new Label("Choose Export Folder");
-		epLabel.setForeground(text);
-		epLabel.setLocation(gui.getWidth() / 12, gui.getHeight() / 2 - 20);
-		epLabel.setSize(500, 20);
-		gui.add(epLabel);
+		exportPathLable = new JLabel("Choose Export Folder");
+		exportPathLable.setForeground(text);
+		exportPathLable.setLocation(initPanel.getWidth() / 12, initPanel.getHeight() / 2 - 20);
+		exportPathLable.setSize(500, 20);
+		initPanel.add(exportPathLable);
 
 		// text field
-		y = 0;
-
-		if (mode.equals(Strings.light))
-			y++;
-
-		ep = new TextField(Config.export);
-		ep.setBounds(gui.getWidth() / 12, gui.getHeight() / 2 + y, gui.getWidth() / 6 * 4, 30);
-		ep.setForeground(text);
-		ep.setBackground(background);
-		gui.add(ep);
-		ep.addMouseListener(new MouseListener() {
-
-			public void mouseReleased(MouseEvent e) {}
-
-			public void mousePressed(MouseEvent e) {}
-
-			public void mouseExited(MouseEvent e) {}
-
-			public void mouseEntered(MouseEvent e) {}
+		exportPath = new JTextField(cfg.getExportPath().toString());
+		exportPath.setBounds(initPanel.getWidth() / 12, initPanel.getHeight() / 2, initPanel.getWidth() / 6 * 4, 30);
+		exportPath.setForeground(text);
+		exportPath.setBackground(background);
+		initPanel.add(exportPath);
+		exportPath.addMouseListener(new MouseAdapter() {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				try{
-					JFileChooser fd = new JFileChooser(Strings.file);
-					fd.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					fd.showOpenDialog(gui);
-					ep.setText(fd.getSelectedFile().toString());
-					ExportPath.setExportPath(fd.getSelectedFile().toString());
-				} catch (NullPointerException e1) {}
-				
+				JFileChooser fd = new JFileChooser("Choose Folder");
+				fd.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				fd.showOpenDialog(initPanel);
+				exportPath.setText(fd.getSelectedFile().toString());
+				cfg.setExportPath(fd.getSelectedFile().toString());
 			}
 		});
+		
+		// jd-gui
+		jd = new JDGui();
 
 		// jar export button
-		exportJar = new Button("Export");
-		exportJar.setBounds(gui.getWidth() / 3 - 10, gui.getHeight() / 7 * 5, gui.getWidth()/6, 30);
+		exportJar = new JButton("Export");
+		exportJar.setBounds(initPanel.getWidth() / 3 - 10, initPanel.getHeight() / 7 * 5, initPanel.getWidth()/6, 30);
 		exportJar.setForeground(text);
 		exportJar.setBackground(button);
-		gui.add(exportJar);
+		initPanel.add(exportJar);
 		exportJar.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ExportPath.setExportPath(ep.getText());
-				ExportPath.exportDirPath = Paths.get(ep.getText());
-				try {
-					Deobfuscation.export();
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
+				cfg.setExportPath(exportPath.getText());
+				Path exportPath = cfg.getExportPath();
+				deobf.addOnFinishEvent(() -> {
+					jd.loadFile(exportPath.resolve(Versions.getLatest().getExportedJar()).toFile());
+				});
+				deobf.export(exportPath, Versions.getLatest());
 			}
 		});
 		
-		// dark mode
-		thm = new Button(mode);
-		thm.setBounds(gui.getWidth() / 4 * 3, gui.getHeight() / 2, gui.getWidth()/6, 30);
-		thm.setForeground(text);
-		thm.setBackground(button);
-		gui.add(thm);
-		thm.addActionListener(new ActionListener() {
+		// close button
+		cls = new JButton("Close");
+		cls.setBounds(initPanel.getWidth() / 2 + 10, initPanel.getHeight() / 7 * 5, initPanel.getWidth()/6, 30);
+		cls.setForeground(text);
+		cls.setBackground(button);
+		initPanel.add(cls);
+		cls.addActionListener(new ActionListener() {
 
-			@Override
 			public void actionPerformed(ActionEvent e) {
-				
-				switch (thm.getLabel()) {
-
-					// is light
-					case Strings.light:
-						thm.setLabel(Strings.dark);
-						DarkMode.setMode(Strings.dark);
-						setColors(0, 0, 50, 254, 254, 254);
-						updateColors();
-						break;
-	
-					// is dark
-					case Strings.dark:
-						thm.setLabel(Strings.light);
-						DarkMode.setMode(Strings.light);
-						setColors(254, 254, 254, 0, 0, 0);
-						updateColors();
-						break;
-				}
-			}
-		});
-		
-		// make application work
-		gui.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
 				onClose();
 			}
 		});
+		
+		// theme
+		thm = new JButton(this.theme.getName());
+		thm.setBounds(initPanel.getWidth() / 4 * 3, initPanel.getHeight() / 2, initPanel.getWidth()/6, 30);
+		thm.setForeground(text);
+		thm.setBackground(button);
+		initPanel.add(thm);
+		thm.addActionListener(new ActionListener() {
 
-		gui.setLocation(centerX, centerY);
+			public void actionPerformed(ActionEvent e) {
+				Theme theme;
+				
+				String light = "Light Mode";
+				String dark = "Dark Mode";
+				
+				switch (thm.getText()) {
+					case "Light Mode":
+						thm.setText(dark);
+						cfg.setTheme(dark);
+						theme = Theme.DARK;
+						setTheme(theme);
+						updateColors();
+						break;
+	
+					case "Dark Mode":
+						thm.setText(light);
+						cfg.setTheme(light);
+						theme = Theme.LIGHT;
+						setTheme(theme);
+						updateColors();
+						break;
+				}
+			}
+		});
+				
+		// make application work
 		gui.setBackground(background);
-		gui.setLayout(null);
+		gui.addWindowListener(new WindowAdapter() {
+			public void windowClosed(WindowEvent e) {
+				onClose();
+			}
+		});
+		gui.setDefaultCloseOperation(3);
 		gui.setVisible(true);
 		
-		dim = gui.getSize();
-		
-		while(true) {
-			System.out.print("");
-			if(!dim.equals(gui.getSize())) {
+		initPanel.addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent e) {
+				cls.setBounds(initPanel.getWidth() / 2 + 10, initPanel.getHeight() / 7 * 5, initPanel.getWidth()/6, 30);
 				
-				cls.setBounds(gui.getWidth() / 2 + 10, gui.getHeight() / 7 * 5, gui.getWidth()/6, 30);
+				exportJar.setBounds(initPanel.getWidth() / 3 - 10, initPanel.getHeight() / 7 * 5, initPanel.getWidth()/6, 30);
 				
-				exportJar.setBounds(gui.getWidth() / 3 - 10, gui.getHeight() / 7 * 5, gui.getWidth()/6, 30);
+				versionChooser.setBounds(initPanel.getWidth() / 12, initPanel.getHeight() / 4, initPanel.getWidth() / 6 * 5, 30);
 				
-				fe.setBounds(gui.getWidth() / 12, gui.getHeight() / 4, gui.getWidth() / 6 * 5, 30);
+				versionChooserLabel.setLocation(initPanel.getWidth() / 12, initPanel.getHeight() / 4 - 20);
+				versionChooserLabel.setSize(500, 20);
 				
-				feLabel.setLocation(gui.getWidth() / 12, gui.getHeight() / 4 - 20);
-				feLabel.setSize(500, 20);
+				exportPath.setBounds(initPanel.getWidth() / 12, initPanel.getHeight() / 2, initPanel.getWidth() / 6 * 4, 30);
 				
-				ep.setBounds(gui.getWidth() / 12, gui.getHeight() / 2 + y, gui.getWidth() / 6 * 4, 30);
+				exportPathLable.setLocation(initPanel.getWidth() / 12, initPanel.getHeight() / 2 - 20);
+				exportPathLable.setSize(500, 20);
 				
-				epLabel.setLocation(gui.getWidth() / 12, gui.getHeight() / 2 - 20);
-				epLabel.setSize(500, 20);
-				
-				thm.setBounds(gui.getWidth() / 4 * 3, gui.getHeight() / 2, gui.getWidth()/6, 30);
-				
-				dim = gui.getSize();
+				thm.setBounds(initPanel.getWidth() / 4 * 3, initPanel.getHeight() / 2, initPanel.getWidth()/6, 30);
 			}
-		}
+		});
+		
+		gui.add(initPanel);
 	}
 	
-	private void setColors(int br, int bg, int bb, int tr, int tg, int tb) {
-		background = new Color(br, bg, bb);
-		text = new Color(tr, tg, tb);
-
-		int btnr = 0, btng = 0, btnb = 0;
-		int chg = 35;
-
-		if (br >= 100) {
-			btnr = br - chg;
-			btng = bg - chg;
-			btnb = bb - chg;
-		} else if (br <= 100) {
-			btnr = br + chg;
-			btng = bg + chg;
-			btnb = bb - 20 + chg;
-		}
-
-		button = new Color(btnr, btng, btnb);
+	private void setTheme(Theme theme) {
+		this.theme = theme;
 	}
 	
 	private void updateColors() {
+		this.background = this.theme.getBg();
+		this.text = this.theme.getText();
+		this.button = this.theme.getBtn();
+		
 		cls.setForeground(text);
 		cls.setBackground(button);
 		
-		feLabel.setForeground(text);
-		feLabel.setBackground(background);
+		versionChooserLabel.setForeground(text);
+		versionChooserLabel.setBackground(background);
 		
-		fe.setForeground(text);
-		fe.setBackground(background);
+		versionChooser.setForeground(text);
+		versionChooser.setBackground(background);
 		
-		epLabel.setForeground(text);
-		epLabel.setBackground(background);
+		exportPathLable.setForeground(text);
+		exportPathLable.setBackground(background);
 		
-		ep.setForeground(text);
-		ep.setBackground(background);
+		exportPath.setForeground(text);
+		exportPath.setBackground(background);
 		
 		exportJar.setForeground(text);
 		exportJar.setBackground(button);
@@ -300,11 +280,15 @@ public class Gui {
 		thm.setForeground(text);
 		thm.setBackground(button);
 		
-		gui.setBackground(background);
+		initPanel.setBackground(background);
 	}
 	
 	private void onClose() {
-		ExportPath.setExportPath(ep.getText());
+		this.cfg.setExportPath(exportPath.getText());
 		System.exit(0);
+	}
+	
+	public JFrame getFrame() {
+		return this.gui;
 	}
 }
