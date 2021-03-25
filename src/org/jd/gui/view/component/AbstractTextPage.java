@@ -33,8 +33,8 @@ import java.util.Map;
 public class AbstractTextPage extends JPanel implements LineNumberNavigable, ContentSearchable, UriOpenable, PreferencesChangeListener {
     protected static final String FONT_SIZE_KEY = "ViewerPreferences.fontSize";
 
-    protected static final ImageIcon COLLAPSED_ICON = new ImageIcon(AbstractTextPage.class.getClassLoader().getResource("org/jd/gui/images/plus.png"));
-    protected static final ImageIcon EXPANDED_ICON = new ImageIcon(AbstractTextPage.class.getClassLoader().getResource("org/jd/gui/images/minus.png"));
+    protected static final ImageIcon COLLAPSED_ICON = new ImageIcon(AbstractTextPage.class.getResource("/org/jd/gui/images/plus.png"));
+    protected static final ImageIcon EXPANDED_ICON = new ImageIcon(AbstractTextPage.class.getResource("/org/jd/gui/images/minus.png"));
 
     protected static final Color DOUBLE_CLICK_HIGHLIGHT_COLOR = new Color(0x66ff66);
     protected static final Color SEARCH_HIGHLIGHT_COLOR = new Color(0xffff66);

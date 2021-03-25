@@ -17,15 +17,18 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @SuppressWarnings("unchecked")
 public class MainTabbedPanel<T extends JComponent & UriGettable> extends TabbedPanel<T> implements UriOpenable, PreferencesChangeListener, PageChangeListener {
     protected ArrayList<PageChangeListener> pageChangedListeners = new ArrayList<>();
     // Flag to prevent the event cascades
     protected boolean pageChangedListenersEnabled = true;
+    protected Consumer<Component> panelCloseEvent;
 
-    public MainTabbedPanel(API api) {
+    public MainTabbedPanel(API api, Consumer<Component> panelCloseEvent) {
         super(api);
+        this.panelCloseEvent = panelCloseEvent;
     }
 
     @Override
@@ -134,6 +137,12 @@ public class MainTabbedPanel<T extends JComponent & UriGettable> extends TabbedP
 
     public ArrayList<PageChangeListener> getPageChangedListeners() {
         return pageChangedListeners;
+    }
+    
+    @Override
+    public void removeComponent(Component component) {
+        panelCloseEvent.accept(component);
+        super.removeComponent(component);
     }
 
     // --- URIOpener --- //

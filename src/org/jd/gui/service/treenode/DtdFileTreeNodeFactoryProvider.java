@@ -19,7 +19,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 
 public class DtdFileTreeNodeFactoryProvider extends TextFileTreeNodeFactoryProvider {
-    protected static final ImageIcon ICON = new ImageIcon(DtdFileTreeNodeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/dtd_obj.gif"));
+    protected static final ImageIcon ICON = new ImageIcon(DtdFileTreeNodeFactoryProvider.class.getResource("/org/jd/gui/images/dtd_obj.gif"));
 
     @Override public String[] getSelectors() { return appendSelectors("*:file:*.dtd"); }
 

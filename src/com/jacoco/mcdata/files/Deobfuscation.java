@@ -13,9 +13,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
-import com.jacoco.mcdata.Gui;
 import com.jacoco.mcdata.Main;
-import com.jacoco.mcdata.Version;
+import com.jacoco.mcdata.version.Version;
 
 import cuchaz.enigma.Enigma;
 import cuchaz.enigma.EnigmaProfile;
@@ -29,41 +28,35 @@ import cuchaz.enigma.utils.Utils;
 
 public class Deobfuscation {
 
-	private Gui gui;
-	
 	private Enigma enigma;
-	private EnigmaProject project;
-	
 	private MappingFormat format;
-	private ProgressDialog pd;
-	
 	private Runnable onFinish;
 	
-	public Deobfuscation(Gui gui, EnigmaProfile profile, MappingFormat format) {
-		this.gui = gui;
+	public Deobfuscation(MappingFormat format, EnigmaProfile profile) {
 		this.enigma = Enigma.builder().setProfile(profile).build();
 		this.format = format;
-		this.pd = new ProgressDialog();
 	}
 	
 	public void export(Path exportPath, Version version) {
 		version.setExportedJar(exportPath.resolve(version.getName() + ".jar"));
 
-		pd.runOffThread(progress -> {
-			pd.frame.setTitle("Exporting Jar 1/4");
-			project = enigma.openJar(version.getOriginalJar(), progress);
-			
-			pd.frame.setTitle("Exporting Jar 2/4");
-			Path downloadedMap = version.getObfuscationMap().downloadFile(Main.getTmpDir(), progress);
-			
-			pd.frame.setTitle("Exporting Jar 3/4");
-			EntryTree<EntryMapping> mappings = format.read(downloadedMap, progress, null);
-			project.setMappings(mappings);
-
-			EnigmaProject.JarExport jar = project.exportRemappedJar(progress);
-			pd.frame.setTitle("Exporting Jar 4/4");
-			jar.write(version.getExportedJar(), progress);
-		});
+		try (ProgressDialog pd = new ProgressDialog()) {
+			pd.runOffThread(progress -> {
+				pd.frame.setTitle("Exporting Jar 1/4");
+				EnigmaProject project = enigma.openJar(version.getOriginalJar(), progress);
+				
+				pd.frame.setTitle("Exporting Jar 2/4");
+				Path downloadedMap = version.getObfuscationMap().downloadFile(Main.tmpDir, progress);
+				
+				pd.frame.setTitle("Exporting Jar 3/4");
+				EntryTree<EntryMapping> mappings = format.read(downloadedMap, progress, null);
+				project.setMappings(mappings);
+	
+				EnigmaProject.JarExport jar = project.exportRemappedJar(progress);
+				pd.frame.setTitle("Exporting Jar 4/4");
+				jar.write(version.getExportedJar(), progress);
+			});
+		}
 	}
 	
 	public void addOnFinishEvent(Runnable runnable) {
@@ -79,7 +72,7 @@ public class Deobfuscation {
 
 		private JProgressBar progress;
 		
-		public void setup(JFrame parent) {
+		public void setup() {
 			Container pane = this.frame.getContentPane();
 			FlowLayout layout = new FlowLayout();
 			layout.setAlignment(0);
@@ -98,7 +91,7 @@ public class Deobfuscation {
 			pane.doLayout();
 			this.frame.setSize(400, 120);
 			this.frame.setResizable(false);
-			this.frame.setLocationRelativeTo(parent);
+			this.frame.setLocationRelativeTo(null);
 			this.frame.setVisible(true);
 			this.frame.setDefaultCloseOperation(0);
 		}
@@ -107,7 +100,7 @@ public class Deobfuscation {
 			OnExport onExport = new OnExport() {
 				public Void run() {
 					try (ProgressDialog progress = ProgressDialog.this) {
-						progress.setup(gui.getFrame());
+						progress.setup();
 						runnable.run(progress);
 					} catch (Exception ex) {
 						throw new Error(ex);

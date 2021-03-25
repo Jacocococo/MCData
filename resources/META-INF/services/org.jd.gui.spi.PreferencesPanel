@@ -1,0 +1,7 @@
+org.jd.gui.service.preferencespanel.UISingleInstancePreferencesProvider
+org.jd.gui.service.preferencespanel.UITabsPreferencesProvider
+org.jd.gui.service.preferencespanel.DirectoryIndexerPreferencesProvider
+org.jd.gui.service.preferencespanel.ClassFileSaverPreferencesProvider
+org.jd.gui.service.preferencespanel.ClassFileDecompilerPreferencesProvider
+org.jd.gui.service.preferencespanel.ViewerPreferencesProvider
+org.jd.gui.service.preferencespanel.MavenOrgSourceLoaderPreferencesProvider

@@ -16,8 +16,6 @@ public class Constants {
 	public static final int MINIMAL_WIDTH = 500;
 	public static final int MINIMAL_HEIGHT = 160;
 
-	public static final String CONFIG_FILENAME = "jd-gui.cfg";
-
 	public static final int MAX_RECENT_FILES = 10;
 	public static final int RECENT_FILE_MAX_LENGTH = 200;
 }

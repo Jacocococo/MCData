@@ -27,7 +27,7 @@ public class CopyQualifiedNameContextualActionsFactory implements ContextualActi
     }
 
     public static class CopyQualifiedNameAction extends AbstractAction {
-        protected static final ImageIcon ICON = new ImageIcon(CopyQualifiedNameAction.class.getClassLoader().getResource("org/jd/gui/images/cpyqual_menu.png"));
+        protected static final ImageIcon ICON = new ImageIcon(CopyQualifiedNameAction.class.getResource("/org/jd/gui/images/cpyqual_menu.png"));
 
         protected API api;
         protected Container.Entry entry;

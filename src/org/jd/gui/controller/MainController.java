@@ -7,6 +7,7 @@
 
 package org.jd.gui.controller;
 
+import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Frame;
 import java.awt.Point;
@@ -36,8 +37,10 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JLayer;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
@@ -89,6 +92,8 @@ import org.jd.gui.view.MainView;
 public class MainController implements API {
     protected Configuration configuration;
 	protected MainView mainView;
+    protected List<File> files = new ArrayList<>();
+    protected JPanel internalContainer;
 
     protected GoToController goToController;
     protected OpenTypeController openTypeController;
@@ -105,8 +110,8 @@ public class MainController implements API {
     protected ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
     protected ArrayList<IndexesChangeListener> containerChangeListeners = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
-    public MainController(Configuration configuration) {
+    public MainController(JPanel internalContainer, Configuration configuration) {
+    	this.internalContainer = internalContainer;
         this.configuration = configuration;
 
         SwingUtil.invokeLater(() -> {
@@ -116,8 +121,14 @@ public class MainController implements API {
             }
 
             // Create main frame
-            mainView = new MainView(
-                configuration, this, history,
+            mainView = createView(MainView.INTERNAL);
+        });
+	}
+    
+    @SuppressWarnings("unchecked")
+	protected MainView createView(int boundedness) {
+    	return new MainView(
+                boundedness, configuration, this, history,
                 e -> onOpen(),
                 e -> onClose(),
                 e -> onSaveSource(),
@@ -144,16 +155,20 @@ public class MainController implements API {
                 e -> onAbout(),
                 () -> panelClosed(),
                 page -> onCurrentPageChanged((JComponent)page),
-                file -> openFile((File)file));
-        });
-	}
+                file -> openFile((File)file),
+                comp -> onPanelClosed((Component) comp),
+                () -> onWindowClose());
+    }
 
 	// --- Show GUI --- //
     @SuppressWarnings("unchecked")
-	public void show() {
+	public void show(List<File> files) {
         SwingUtil.invokeLater(() -> {
             // Show main frame
             mainView.show(configuration.getMainWindowLocation(), configuration.getMainWindowSize(), configuration.isMainWindowMaximize());
+            if (!files.isEmpty()) {
+                openFiles(files);
+            }
         });
 
         // Background initializations
@@ -166,29 +181,32 @@ public class MainController implements API {
             TreeNodeFactoryService.getInstance();
             TypeFactoryService.getInstance();
 
-            SwingUtil.invokeLater(() -> {
-                // Populate recent files menu
-                mainView.updateRecentFilesMenu(configuration.getRecentFiles());
-                // Background controller creation
-                JFrame mainFrame = mainView.getMainFrame();
-                saveAllSourcesController = new SaveAllSourcesController(MainController.this, mainFrame);
-                containerChangeListeners.add(openTypeController = new OpenTypeController(MainController.this, executor, mainFrame));
-                containerChangeListeners.add(openTypeHierarchyController = new OpenTypeHierarchyController(MainController.this, executor, mainFrame));
-                goToController = new GoToController(configuration, mainFrame);
-                containerChangeListeners.add(searchInConstantPoolsController = new SearchInConstantPoolsController(MainController.this, executor, mainFrame));
-                preferencesController = new PreferencesController(configuration, mainFrame, PreferencesPanelService.getInstance().getProviders());
-                selectLocationController = new SelectLocationController(MainController.this, mainFrame);
-                aboutController = new AboutController(mainFrame);
-                sourceLoaderService = new SourceLoaderService();
-                // Add listeners
-                mainFrame.addComponentListener(new MainFrameListener(configuration));
-                // Set drop files transfer handler
-                mainFrame.setTransferHandler(new FilesTransferHandler());
-                // Background class loading
-                new JFileChooser().addChoosableFileFilter(new FileNameExtensionFilter("", "dummy"));
-                FileSystemView.getFileSystemView().isFileSystemRoot(new File("dummy"));
-                new JLayer();
-            });
+            // Populate recent files menu
+            mainView.updateRecentFilesMenu(configuration.getRecentFiles());
+            // Background controller creation
+            JFrame mainFrame = null;
+            Component tempMainFrame = mainView.getMainFrame();
+            if(tempMainFrame instanceof JFrame)
+                mainFrame = (JFrame) tempMainFrame;
+            else if(tempMainFrame instanceof JInternalFrame)
+                internalContainer.add(mainView.getMainFrame());
+            saveAllSourcesController = new SaveAllSourcesController(MainController.this, mainFrame);
+            containerChangeListeners.add(openTypeController = new OpenTypeController(MainController.this, executor, mainFrame));
+            containerChangeListeners.add(openTypeHierarchyController = new OpenTypeHierarchyController(MainController.this, executor, mainFrame));
+            goToController = new GoToController(configuration, mainFrame);
+            containerChangeListeners.add(searchInConstantPoolsController = new SearchInConstantPoolsController(MainController.this, executor, mainFrame));
+            preferencesController = new PreferencesController(configuration, mainFrame, PreferencesPanelService.getInstance().getProviders());
+            selectLocationController = new SelectLocationController(MainController.this, mainFrame);
+            aboutController = new AboutController(mainFrame);
+            sourceLoaderService = new SourceLoaderService();
+            // Add listeners
+            mainFrame.addComponentListener(new MainFrameListener(configuration));
+            // Set drop files transfer handler
+            mainFrame.setTransferHandler(new FilesTransferHandler());
+            // Background class loading
+            new JFileChooser().addChoosableFileFilter(new FileNameExtensionFilter("", "dummy"));
+            FileSystemView.getFileSystemView().isFileSystemRoot(new File("dummy"));
+            new JLayer();
         }, 400, TimeUnit.MILLISECONDS);
 
         PasteHandlerService.getInstance();
@@ -238,7 +256,7 @@ public class MainController implements API {
     protected void onSaveSource() {
         if (currentPage instanceof ContentSavable) {
             JFileChooser chooser = new JFileChooser();
-            JFrame mainFrame = mainView.getMainFrame();
+            Component mainFrame = mainView.getMainFrame();
 
             chooser.setSelectedFile(new File(configuration.getRecentSaveDirectory(), ((ContentSavable)currentPage).getFileName()));
 
@@ -276,7 +294,7 @@ public class MainController implements API {
             if (currentPanel instanceof SourcesSavable) {
                 SourcesSavable sourcesSavable = (SourcesSavable)currentPanel;
                 JFileChooser chooser = new JFileChooser();
-                JFrame mainFrame = mainView.getMainFrame();
+                Component mainFrame = mainView.getMainFrame();
 
                 chooser.setSelectedFile(new File(configuration.getRecentSaveDirectory(), sourcesSavable.getSourceFileName()));
 
@@ -483,6 +501,8 @@ public class MainController implements API {
         if (errors.isEmpty()) {
             for (File file : files) {
                 if (openURI(file.toURI())) {
+                	if(!this.files.contains(file))
+                        this.files.add(file);
                     configuration.addRecentFile(file);
                     mainView.updateRecentFilesMenu(configuration.getRecentFiles());
                 }
@@ -505,6 +525,27 @@ public class MainController implements API {
 
             JOptionPane.showMessageDialog(mainView.getMainFrame(), messages.toString(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    public void onWindowClose() {
+        Component comp = mainView.getMainFrame();
+        if(comp instanceof JFrame)
+            this.mainView = createView(MainView.INTERNAL);
+        else if(comp instanceof JInternalFrame)
+            this.mainView = createView(MainView.EXTERNAL);
+        SwingUtil.invokeLater(() -> {
+            // Show main frame
+            Component newComp = mainView.getMainFrame();
+            if(newComp instanceof JFrame)
+                mainView.show(configuration.getMainWindowLocation(), configuration.getMainWindowSize(), configuration.isMainWindowMaximize());
+            else if(newComp instanceof JInternalFrame) {
+                internalContainer.add(newComp);
+                newComp.setVisible(true);
+            }
+            if (!files.isEmpty()) {
+                openFiles(files);
+            }
+        });
     }
 
     // --- Drop files transfer handler --- //
@@ -536,30 +577,38 @@ public class MainController implements API {
         public MainFrameListener(Configuration configuration) {
             this.configuration = configuration;
         }
+        
+        public String printstuff() {
+        	return "stuff";
+        }
 
         @Override
         public void componentMoved(ComponentEvent e) {
-            JFrame mainFrame = mainView.getMainFrame();
-
-            if ((mainFrame.getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH) {
-                configuration.setMainWindowMaximize(true);
-            } else {
-                configuration.setMainWindowLocation(mainFrame.getLocation());
-                configuration.setMainWindowMaximize(false);
-            }
+            Component mainFrame = mainView.getMainFrame();
+            if(mainFrame instanceof JFrame)
+                if ((((JFrame) mainFrame).getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH) {
+                    configuration.setMainWindowMaximize(true);
+                } else {
+                    configuration.setMainWindowLocation(mainFrame.getLocation());
+                    configuration.setMainWindowMaximize(false);
+                }
         }
 
         @Override
         public void componentResized(ComponentEvent e) {
-            JFrame mainFrame = mainView.getMainFrame();
-
-            if ((mainFrame.getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH) {
-                configuration.setMainWindowMaximize(true);
-            } else {
-                configuration.setMainWindowSize(mainFrame.getSize());
-                configuration.setMainWindowMaximize(false);
-            }
+            Component mainFrame = mainView.getMainFrame();
+            if(mainFrame instanceof JFrame)
+                if ((((JFrame) mainFrame).getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH) {
+                    configuration.setMainWindowMaximize(true);
+                } else {
+                    configuration.setMainWindowSize(mainFrame.getSize());
+                    configuration.setMainWindowMaximize(false);
+                }
         }
+    }
+
+    public void onPanelClosed(Component component) {
+        files.remove(new File(component.getName()));
     }
 
     protected void panelClosed() {
