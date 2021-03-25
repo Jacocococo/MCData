@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import com.jacoco.mcdata.Versions;
+import com.jacoco.mcdata.version.Versions;
 
 import cuchaz.enigma.ProgressListener; 
 

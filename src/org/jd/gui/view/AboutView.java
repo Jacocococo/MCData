@@ -43,7 +43,7 @@ public class AboutView {
             subpanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             subpanel.setBackground(Color.WHITE);
             subpanel.setLayout(new BorderLayout());
-            JLabel logo = new JLabel(new ImageIcon(Toolkit.getDefaultToolkit().getImage("resources/org/jd/gui/images/jd_icon_64.png")));
+            JLabel logo = new JLabel(new ImageIcon(Toolkit.getDefaultToolkit().getImage(AboutView.class.getResource("/org/jd/gui/images/jd_icon_64.png"))));
             logo.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
             subpanel.add(logo, BorderLayout.WEST);
             Box subvbox = Box.createVerticalBox();

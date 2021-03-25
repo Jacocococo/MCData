@@ -7,28 +7,22 @@
 
 package org.jd.gui.view;
 
-import org.jd.gui.Constants;
-import org.jd.gui.api.API;
-import org.jd.gui.api.feature.*;
-import org.jd.gui.model.configuration.Configuration;
-import org.jd.gui.model.history.History;
-import org.jd.gui.service.platform.PlatformService;
-import org.jd.gui.util.exception.ExceptionUtil;
-import org.jd.gui.view.component.IconButton;
-import org.jd.gui.view.component.panel.MainTabbedPanel;
+import static org.jd.gui.util.swing.SwingUtil.invokeLater;
+import static org.jd.gui.util.swing.SwingUtil.newAction;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -37,13 +31,63 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static org.jd.gui.util.swing.SwingUtil.*;
+import javax.imageio.ImageIO;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+
+import org.jd.gui.Constants;
+import org.jd.gui.api.API;
+import org.jd.gui.api.feature.ContentCopyable;
+import org.jd.gui.api.feature.ContentSavable;
+import org.jd.gui.api.feature.ContentSearchable;
+import org.jd.gui.api.feature.ContentSelectable;
+import org.jd.gui.api.feature.FocusedTypeGettable;
+import org.jd.gui.api.feature.LineNumberNavigable;
+import org.jd.gui.api.feature.PageChangeListener;
+import org.jd.gui.api.feature.PageClosable;
+import org.jd.gui.api.feature.PreferencesChangeListener;
+import org.jd.gui.api.feature.SourcesSavable;
+import org.jd.gui.api.feature.UriGettable;
+import org.jd.gui.api.feature.UriOpenable;
+import org.jd.gui.model.configuration.Configuration;
+import org.jd.gui.model.history.History;
+import org.jd.gui.service.platform.PlatformService;
+import org.jd.gui.util.exception.ExceptionUtil;
+import org.jd.gui.view.component.IconButton;
+import org.jd.gui.view.component.panel.MainTabbedPanel;
 
 @SuppressWarnings({"hiding", "unchecked", "rawtypes"})
 public class MainView<T extends JComponent & UriGettable> implements UriOpenable, PreferencesChangeListener {
-    protected History history;
+	public static final int EXTERNAL = 0;
+    public static final int INTERNAL = 1;
+	
+	protected History history;
     protected Consumer<File> openFilesCallback;
-    protected JFrame mainFrame;
+    protected Component mainFrame;
     protected JMenu recentFiles = new JMenu("Recent Files");
     protected Action closeAction;
     protected Action openTypeAction;
@@ -57,7 +101,7 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
     protected Color findErrorBackgroundColor;
 
     public MainView(
-            Configuration configuration, API api, History history,
+            int boundedness, Configuration configuration, API api, History history,
             ActionListener openActionListener,
             ActionListener closeActionListener,
             ActionListener saveActionListener,
@@ -84,19 +128,36 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             ActionListener aboutActionListener,
             Runnable panelClosedCallback,
             Consumer<T> currentPageChangedCallback,
-            Consumer<File> openFilesCallback) {
+            Consumer<File> openFilesCallback,
+            Consumer<Component> mainPanelCloseEvent,
+            Runnable windowCloseAction) {
         this.history = history;
         this.openFilesCallback = openFilesCallback;
         // Build GUI
         invokeLater(() -> {
-        	try {
-        		mainFrame = new JFrame("Java Decompiler");
-				mainFrame.setIconImages(Arrays.asList(ImageIO.read(MainView.class.getResource("/org/jd/gui/images/jd_icon_32.png")), ImageIO.read(MainView.class.getResource("/org/jd/gui/images/jd_icon_64.png")), ImageIO.read(MainView.class.getResource("/org/jd/gui/images/jd_icon_128.png"))));
-	            mainFrame.setMinimumSize(new Dimension(Constants.MINIMAL_WIDTH, Constants.MINIMAL_HEIGHT));
-	            mainFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        	} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+        	if(boundedness == EXTERNAL) {
+                try {
+                	mainFrame = new JFrame("Java Decompiler");
+					((JFrame) mainFrame).setIconImages(Arrays.asList(ImageIO.read(MainView.class.getResource("/org/jd/gui/images/jd_icon_32.png")), ImageIO.read(MainView.class.getResource("/org/jd/gui/images/jd_icon_64.png")), ImageIO.read(MainView.class.getResource("/org/jd/gui/images/jd_icon_128.png"))));
+	                ((JFrame) mainFrame).addWindowListener(new WindowAdapter() {
+	                    public void windowClosing(WindowEvent e) {
+	                        windowCloseAction.run();
+	                    }
+	                });
+                } catch (IOException e1) {
+					e1.printStackTrace();
+				}
+            } else if(boundedness == INTERNAL) {
+                mainFrame = new JInternalFrame("Java Decompiler");
+                ((JInternalFrame) mainFrame).setFrameIcon(new ImageIcon(MainView.class.getResource("/org/jd/gui/images/jd_icon_32.png")));
+                ((JInternalFrame) mainFrame).setClosable(true);
+                ((JInternalFrame) mainFrame).addInternalFrameListener(new InternalFrameAdapter() {
+                    public void internalFrameClosing(InternalFrameEvent e) {
+                        windowCloseAction.run();
+                    }
+                });
+            }
+            mainFrame.setMinimumSize(new Dimension(Constants.MINIMAL_WIDTH, Constants.MINIMAL_HEIGHT));
 
             // Find panel //
             Action findNextAction = newAction("Next", new ImageIcon(MainView.class.getResource("/org/jd/gui/images/next_nav.png")), true, findNextActionListener);
@@ -249,7 +310,10 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
                 menu.addSeparator();
                 menu.add(aboutAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
             }
-            mainFrame.setJMenuBar(menuBar);
+            if(boundedness == EXTERNAL)
+                ((JFrame) mainFrame).setJMenuBar(menuBar);
+            else if(boundedness == INTERNAL)
+                ((JInternalFrame) mainFrame).setJMenuBar(menuBar);
 
             // Icon bar //
             JPanel panel = new JPanel();
@@ -266,7 +330,7 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             toolBar.add(new IconButton(forwardAction));
             panel.add(toolBar, BorderLayout.PAGE_START);
 
-            mainTabbedPanel = new MainTabbedPanel(api);
+            mainTabbedPanel = new MainTabbedPanel(api, mainPanelCloseEvent);
             mainTabbedPanel.getPageChangedListeners().add(new PageChangeListener() {
                 protected JComponent currentPage = null;
 
@@ -279,7 +343,10 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
                         invokeLater(() -> {
                             if (page == null) {
                                 // Update title
-                                mainFrame.setTitle("Java Decompiler");
+                            	if(boundedness == EXTERNAL)
+                                    ((JFrame) mainFrame).setTitle("Java Decompiler");
+                                else if(boundedness == INTERNAL)
+                                    ((JInternalFrame) mainFrame).setTitle("Java Decompiler");
                                 // Update menu
                                 saveAction.setEnabled(false);
                                 copyAction.setEnabled(false);
@@ -293,7 +360,10 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
                                 String path = page.getUri().getPath();
                                 int index = path.lastIndexOf('/');
                                 String name = (index == -1) ? path : path.substring(index + 1);
-                                mainFrame.setTitle((name != null) ? name + " - Java Decompiler" : "Java Decompiler");
+                                if(boundedness == EXTERNAL)
+                                    ((JFrame) mainFrame).setTitle((name != null) ? name + " - Java Decompiler" : "Java Decompiler");
+                                else if(boundedness == INTERNAL)
+                                    ((JInternalFrame) mainFrame).setTitle((name != null) ? name + " - Java Decompiler" : "Java Decompiler");
                                 // Update history
                                 history.add(page.getUri());
                                 // Update history actions
@@ -338,7 +408,10 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             panel.add(mainTabbedPanel, BorderLayout.CENTER);
 
             panel.add(findPanel, BorderLayout.PAGE_END);
-            mainFrame.add(panel);
+            if(boundedness == EXTERNAL)
+                ((JFrame) mainFrame).add(panel);
+            else if(boundedness == INTERNAL)
+                ((JInternalFrame) mainFrame).add(panel);
         });
     }
 
@@ -347,12 +420,13 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             // Set position, resize and show
             mainFrame.setLocation(location);
             mainFrame.setSize(size);
-            mainFrame.setExtendedState(maximize ? JFrame.MAXIMIZED_BOTH : 0);
+            if(mainFrame instanceof JFrame)
+                ((JFrame) mainFrame).setExtendedState(maximize ? JFrame.MAXIMIZED_BOTH : 0);
             mainFrame.setVisible(true);
         });
     }
 
-    public JFrame getMainFrame() {
+    public Component getMainFrame() {
         return mainFrame;
     }
 

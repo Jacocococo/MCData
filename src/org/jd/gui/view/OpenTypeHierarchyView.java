@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 public class OpenTypeHierarchyView {
-    protected static final ImageIcon ROOT_CLASS_ICON = new ImageIcon("resources/org/jd/gui/images/generate_class.png");
-    protected static final ImageIcon ROOT_INTERFACE_ICON = new ImageIcon("resources/org/jd/gui/images/generate_int.png");
+    protected static final ImageIcon ROOT_CLASS_ICON = new ImageIcon(OpenTypeHierarchyView.class.getResource("/org/jd/gui/images/generate_class.png"));
+    protected static final ImageIcon ROOT_INTERFACE_ICON = new ImageIcon(OpenTypeHierarchyView.class.getResource("/org/jd/gui/images/generate_int.png"));
 
     protected static final TreeNodeComparator TREE_NODE_COMPARATOR = new TreeNodeComparator();
 

@@ -346,32 +346,32 @@ public abstract class AbstractTypeFactoryProvider implements TypeFactory {
         return result;
     }
 
-    protected static final ImageIcon ABSTRACT_OVERLAY_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/abstract_ovr.png"));
-    protected static final ImageIcon FINAL_OVERLAY_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/final_ovr.png"));
-    protected static final ImageIcon STATIC_OVERLAY_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/static_ovr.png"));
+    protected static final ImageIcon ABSTRACT_OVERLAY_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/abstract_ovr.png"));
+    protected static final ImageIcon FINAL_OVERLAY_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/final_ovr.png"));
+    protected static final ImageIcon STATIC_OVERLAY_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/static_ovr.png"));
 
-    protected static final ImageIcon CLASS_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/class_default_obj.png"));
-    protected static final ImageIcon PUBLIC_CLASS_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/class_obj.png"));
-    protected static final ImageIcon PROTECTED_CLASS_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/class_protected_obj.png"));
-    protected static final ImageIcon PRIVATE_CLASS_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/class_private_obj.png"));
+    protected static final ImageIcon CLASS_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/class_default_obj.png"));
+    protected static final ImageIcon PUBLIC_CLASS_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/class_obj.png"));
+    protected static final ImageIcon PROTECTED_CLASS_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/class_protected_obj.png"));
+    protected static final ImageIcon PRIVATE_CLASS_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/class_private_obj.png"));
 
-    protected static final ImageIcon INTERFACE_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/int_default_obj.png"));
-    protected static final ImageIcon PUBLIC_INTERFACE_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/int_obj.png"));
-    protected static final ImageIcon PROTECTED_INTERFACE_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/int_protected_obj.png"));
-    protected static final ImageIcon PRIVATE_INTERFACE_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/int_private_obj.png"));
+    protected static final ImageIcon INTERFACE_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/int_default_obj.png"));
+    protected static final ImageIcon PUBLIC_INTERFACE_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/int_obj.png"));
+    protected static final ImageIcon PROTECTED_INTERFACE_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/int_protected_obj.png"));
+    protected static final ImageIcon PRIVATE_INTERFACE_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/int_private_obj.png"));
 
-    protected static final ImageIcon ANNOTATION_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/annotation_obj.png"));
-    protected static final ImageIcon ENUM_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/enum_obj.png"));
+    protected static final ImageIcon ANNOTATION_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/annotation_obj.png"));
+    protected static final ImageIcon ENUM_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/enum_obj.png"));
 
-    protected static final ImageIcon FIELD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/field_default_obj.png"));
-    protected static final ImageIcon PUBLIC_FIELD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/field_public_obj.png"));
-    protected static final ImageIcon PROTECTED_FIELD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/field_protected_obj.png"));
-    protected static final ImageIcon PRIVATE_FIELD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/field_private_obj.png"));
+    protected static final ImageIcon FIELD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/field_default_obj.png"));
+    protected static final ImageIcon PUBLIC_FIELD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/field_public_obj.png"));
+    protected static final ImageIcon PROTECTED_FIELD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/field_protected_obj.png"));
+    protected static final ImageIcon PRIVATE_FIELD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/field_private_obj.png"));
 
-    protected static final ImageIcon METHOD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/methdef_obj.png"));
-    protected static final ImageIcon PUBLIC_METHOD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/methpub_obj.png"));
-    protected static final ImageIcon PROTECTED_METHOD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/methpro_obj.png"));
-    protected static final ImageIcon PRIVATE_METHOD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getClassLoader().getResource("org/jd/gui/images/methpri_obj.png"));
+    protected static final ImageIcon METHOD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/methdef_obj.png"));
+    protected static final ImageIcon PUBLIC_METHOD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/methpub_obj.png"));
+    protected static final ImageIcon PROTECTED_METHOD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/methpro_obj.png"));
+    protected static final ImageIcon PRIVATE_METHOD_ICON = new ImageIcon(ClassFileTypeFactoryProvider.class.getResource("/org/jd/gui/images/methpri_obj.png"));
 
     // Default icon set
     protected static final ImageIcon[] DEFAULT_CLASS_ICONS = {
