@@ -13,13 +13,11 @@ MCData uses assets from following software:
 
 MCData requires Java SE 8, version 52
 
-The first time you launch MCData.jar, it will create a folder called Sources.
-After that, you need to relaunch MCData.
-The next time you want to launch the software, you only need to do it once.
+The first time you launch MCData.jar, it will create a folder called Sources, with a Config file and Export directory inside
 
 ## How to use
 
- The directory of the Minecraft version you want to deobfuscate shall be selected in the "Choose Version Folder" section. Then an Export path needs to be set. After that, click "Export", and a Deobfuscated version of Minecraft will be created at the Export folder you selected.
+The directory of the Minecraft version you want to deobfuscate shall be selected in the "Choose Version Folder" section. Then an Export path needs to be set. After that, click "Export", and a Deobfuscated version of Minecraft will be created at the Export folder you selected.
  
  ## You may also like
  
