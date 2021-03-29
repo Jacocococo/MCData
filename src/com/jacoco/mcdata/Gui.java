@@ -27,7 +27,7 @@ public class Gui {
 	private Deobfuscation deobf;
 	
 	private List<View> views = new ArrayList<View>();
-		
+	
 	public Gui(Config cfg) {
 		Theme theme = cfg.getTheme();
 		this.deobf = new Deobfuscation(MappingFormat.PROGUARD, EnigmaProfile.EMPTY);
