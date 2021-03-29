@@ -7,28 +7,39 @@
 
 package org.jd.gui.view.component.panel;
 
-import org.jd.gui.api.API;
-import org.jd.gui.api.feature.*;
-import org.jd.gui.service.platform.PlatformService;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import org.jd.gui.api.API;
+import org.jd.gui.api.feature.PageChangeListener;
+import org.jd.gui.api.feature.PageChangeable;
+import org.jd.gui.api.feature.PreferencesChangeListener;
+import org.jd.gui.api.feature.UriGettable;
+import org.jd.gui.api.feature.UriOpenable;
+import org.jd.gui.service.platform.PlatformService;
 
 @SuppressWarnings("unchecked")
 public class MainTabbedPanel<T extends JComponent & UriGettable> extends TabbedPanel<T> implements UriOpenable, PreferencesChangeListener, PageChangeListener {
     protected ArrayList<PageChangeListener> pageChangedListeners = new ArrayList<>();
     // Flag to prevent the event cascades
     protected boolean pageChangedListenersEnabled = true;
-    protected Consumer<Component> panelCloseEvent;
 
-    public MainTabbedPanel(API api, Consumer<Component> panelCloseEvent) {
+    public MainTabbedPanel(API api) {
         super(api);
-        this.panelCloseEvent = panelCloseEvent;
     }
 
     @Override
@@ -137,12 +148,6 @@ public class MainTabbedPanel<T extends JComponent & UriGettable> extends TabbedP
 
     public ArrayList<PageChangeListener> getPageChangedListeners() {
         return pageChangedListeners;
-    }
-    
-    @Override
-    public void removeComponent(Component component) {
-        panelCloseEvent.accept(component);
-        super.removeComponent(component);
     }
 
     // --- URIOpener --- //

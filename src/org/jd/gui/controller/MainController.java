@@ -87,12 +87,12 @@ import org.jd.gui.util.exception.ExceptionUtil;
 import org.jd.gui.util.net.UriUtil;
 import org.jd.gui.util.swing.SwingUtil;
 import org.jd.gui.view.MainView;
+import org.jd.gui.view.component.panel.MainTabbedPanel;
 
 @SuppressWarnings("rawtypes")
 public class MainController implements API {
     protected Configuration configuration;
 	protected MainView mainView;
-    protected List<File> files = new ArrayList<>();
     protected JPanel internalContainer;
 
     protected GoToController goToController;
@@ -119,16 +119,15 @@ public class MainController implements API {
                 // Fix for GTKLookAndFeel
                 SwingUtil.installGtkPopupBugWorkaround();
             }
-
             // Create main frame
-            mainView = createView(MainView.INTERNAL);
+            mainView = createView(MainView.INTERNAL, null);
         });
 	}
     
     @SuppressWarnings("unchecked")
-	protected MainView createView(int boundedness) {
+	protected MainView createView(int boundedness, MainTabbedPanel mainTabbedPanel) {
     	return new MainView(
-                boundedness, configuration, this, history,
+				boundedness, configuration, this, mainTabbedPanel, history,
                 e -> onOpen(),
                 e -> onClose(),
                 e -> onSaveSource(),
@@ -156,7 +155,6 @@ public class MainController implements API {
                 () -> panelClosed(),
                 page -> onCurrentPageChanged((JComponent)page),
                 file -> openFile((File)file),
-                comp -> onPanelClosed((Component) comp),
                 () -> onWindowClose());
     }
 
@@ -501,8 +499,6 @@ public class MainController implements API {
         if (errors.isEmpty()) {
             for (File file : files) {
                 if (openURI(file.toURI())) {
-                	if(!this.files.contains(file))
-                        this.files.add(file);
                     configuration.addRecentFile(file);
                     mainView.updateRecentFilesMenu(configuration.getRecentFiles());
                 }
@@ -527,12 +523,13 @@ public class MainController implements API {
         }
     }
     
-    public void onWindowClose() {
+	public void onWindowClose() {
         Component comp = mainView.getMainFrame();
+        MainTabbedPanel mainTabbedPanel = mainView.getMainTabbedPanel();
         if(comp instanceof JFrame)
-            this.mainView = createView(MainView.INTERNAL);
+            this.mainView = createView(MainView.INTERNAL, mainTabbedPanel);
         else if(comp instanceof JInternalFrame)
-            this.mainView = createView(MainView.EXTERNAL);
+            this.mainView = createView(MainView.EXTERNAL, mainTabbedPanel);
         SwingUtil.invokeLater(() -> {
             // Show main frame
             Component newComp = mainView.getMainFrame();
@@ -541,9 +538,6 @@ public class MainController implements API {
             else if(newComp instanceof JInternalFrame) {
                 internalContainer.add(newComp);
                 newComp.setVisible(true);
-            }
-            if (!files.isEmpty()) {
-                openFiles(files);
             }
         });
     }
@@ -605,10 +599,6 @@ public class MainController implements API {
                     configuration.setMainWindowMaximize(false);
                 }
         }
-    }
-
-    public void onPanelClosed(Component component) {
-        files.remove(new File(component.getName()));
     }
 
     protected void panelClosed() {

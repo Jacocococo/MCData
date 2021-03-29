@@ -101,7 +101,7 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
     protected Color findErrorBackgroundColor;
 
     public MainView(
-            int boundedness, Configuration configuration, API api, History history,
+			int boundedness, Configuration configuration, API api, MainTabbedPanel mainTabbedPanelOverride, History history,
             ActionListener openActionListener,
             ActionListener closeActionListener,
             ActionListener saveActionListener,
@@ -129,7 +129,6 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             Runnable panelClosedCallback,
             Consumer<T> currentPageChangedCallback,
             Consumer<File> openFilesCallback,
-            Consumer<Component> mainPanelCloseEvent,
             Runnable windowCloseAction) {
         this.history = history;
         this.openFilesCallback = openFilesCallback;
@@ -330,7 +329,10 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             toolBar.add(new IconButton(forwardAction));
             panel.add(toolBar, BorderLayout.PAGE_START);
 
-            mainTabbedPanel = new MainTabbedPanel(api, mainPanelCloseEvent);
+            if(mainTabbedPanelOverride == null)
+            	mainTabbedPanel = new MainTabbedPanel(api);
+            else
+            	mainTabbedPanel = mainTabbedPanelOverride;
             mainTabbedPanel.getPageChangedListeners().add(new PageChangeListener() {
                 protected JComponent currentPage = null;
 
@@ -428,6 +430,10 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
 
     public Component getMainFrame() {
         return mainFrame;
+    }
+    
+    public MainTabbedPanel getMainTabbedPanel() {
+    	return mainTabbedPanel;
     }
 
     public void showFindPanel() {
