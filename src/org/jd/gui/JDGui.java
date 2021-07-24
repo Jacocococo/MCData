@@ -25,9 +25,11 @@ public class JDGui {
     protected MainController controller;
     protected JPanel parent;
     protected Configuration configuration;
+	private Runnable toggleVisibility;
 
-	public JDGui(JPanel parent, Config cfg) {
+	public JDGui(JPanel parent, Config cfg, Runnable toggleVisibility) {
 		this.parent = parent;
+		this.toggleVisibility = toggleVisibility;
         // Load preferences
         ConfigurationPersister persister = new ConfigurationPersister(cfg);
         this.configuration = persister.load();
@@ -44,8 +46,9 @@ public class JDGui {
 					e.printStackTrace();
 				}
 	        	// Create main controller and show main frame
-	            controller = new MainController(parent, configuration);
+	            controller = new MainController(parent, configuration, toggleVisibility);
 	            controller.show(Collections.emptyList());
+	            toggleVisibility.run();
 	        },
 	        "JD-Gui"
         ).start();

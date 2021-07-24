@@ -30,7 +30,7 @@ public class ActionsView extends View {
 		
 		Dimension buttonSize = new Dimension(100, 40);
 		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.insets = new Insets(0, 50, 0, 50);
+		constraints.insets = new Insets(0, 10, 0, 10);
 		constraints.fill = GridBagConstraints.NONE;
 		panel.setLayout(new GridBagLayout());
 		panel.setPreferredSize(new Dimension(0, 100));

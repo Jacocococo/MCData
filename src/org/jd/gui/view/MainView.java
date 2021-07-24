@@ -94,6 +94,8 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
     protected Action backwardAction;
     protected Action forwardAction;
     protected MainTabbedPanel mainTabbedPanel;
+    protected JToolBar toolBar;
+    protected JMenuBar menuBar;
     protected Box findPanel;
 	protected JComboBox findComboBox;
     protected JCheckBox findCaseSensitive;
@@ -101,7 +103,9 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
     protected Color findErrorBackgroundColor;
 
     public MainView(
-			int boundedness, Configuration configuration, API api, MainTabbedPanel mainTabbedPanelOverride, History history,
+			int boundedness, Configuration configuration, API api,
+			MainTabbedPanel mainTabbedPanelOverride, JToolBar toolBarOverride, JMenuBar menuBarOverride,
+			History history,
             ActionListener openActionListener,
             ActionListener closeActionListener,
             ActionListener saveActionListener,
@@ -202,7 +206,7 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
 
             findPanel.add(findComboBox);
             findPanel.add(Box.createHorizontalStrut(5));
-            JToolBar toolBar = new JToolBar();
+            toolBar = new JToolBar();
             toolBar.setFloatable(false);
             toolBar.setRollover(true);
 
@@ -260,54 +264,58 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             Action aboutAction = newAction("About...", true, "About JD-GUI", aboutActionListener);
 
             // Menu //
-            int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-            JMenuBar menuBar = new JMenuBar();
-            JMenu menu = new JMenu("File");
-            menuBar.add(menu);
-            menu.add(openAction).setAccelerator(KeyStroke.getKeyStroke('O', menuShortcutKeyMask));
-            menu.addSeparator();
-            menu.add(closeAction).setAccelerator(KeyStroke.getKeyStroke('W', menuShortcutKeyMask));
-            menu.addSeparator();
-            menu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke('S', menuShortcutKeyMask));
-            menu.add(saveAllSourcesAction).setAccelerator(KeyStroke.getKeyStroke('S', menuShortcutKeyMask|InputEvent.ALT_MASK));
-            menu.addSeparator();
-            menu.add(recentFiles);
-            if (!PlatformService.getInstance().isMac()) {
-                menu.addSeparator();
-                menu.add(exitAction).setAccelerator(KeyStroke.getKeyStroke('X', InputEvent.ALT_MASK));
+            if(menuBarOverride != null)
+            	menuBar = menuBarOverride;
+            else {
+	            int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+	            menuBar = new JMenuBar();
+	            JMenu menu = new JMenu("File");
+	            menuBar.add(menu);
+	            menu.add(openAction).setAccelerator(KeyStroke.getKeyStroke('O', menuShortcutKeyMask));
+	            menu.addSeparator();
+	            menu.add(closeAction).setAccelerator(KeyStroke.getKeyStroke('W', menuShortcutKeyMask));
+	            menu.addSeparator();
+	            menu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke('S', menuShortcutKeyMask));
+	            menu.add(saveAllSourcesAction).setAccelerator(KeyStroke.getKeyStroke('S', menuShortcutKeyMask|InputEvent.ALT_MASK));
+	            menu.addSeparator();
+	            menu.add(recentFiles);
+	            if (!PlatformService.getInstance().isMac()) {
+	                menu.addSeparator();
+	                menu.add(exitAction).setAccelerator(KeyStroke.getKeyStroke('X', InputEvent.ALT_MASK));
+	            }
+	            menu = new JMenu("Edit");
+	            menuBar.add(menu);
+	            menu.add(copyAction).setAccelerator(KeyStroke.getKeyStroke('C', menuShortcutKeyMask));
+	            menu.add(pasteAction).setAccelerator(KeyStroke.getKeyStroke('V', menuShortcutKeyMask));
+	            menu.addSeparator();
+	            menu.add(selectAllAction).setAccelerator(KeyStroke.getKeyStroke('A', menuShortcutKeyMask));
+	            menu.addSeparator();
+	            menu.add(findAction).setAccelerator(KeyStroke.getKeyStroke('F', menuShortcutKeyMask));
+	            menu = new JMenu("Navigation");
+	            menuBar.add(menu);
+	            menu.add(openTypeAction).setAccelerator(KeyStroke.getKeyStroke('T', menuShortcutKeyMask));
+	            menu.add(openTypeHierarchyAction).setAccelerator(KeyStroke.getKeyStroke('H', menuShortcutKeyMask));
+	            menu.addSeparator();
+	            menu.add(goToAction).setAccelerator(KeyStroke.getKeyStroke('L', menuShortcutKeyMask));
+	            menu.addSeparator();
+	            menu.add(backwardAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK));
+	            menu.add(forwardAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK));
+	            menu = new JMenu("Search");
+	            menuBar.add(menu);
+	            menu.add(searchAction).setAccelerator(KeyStroke.getKeyStroke('S', menuShortcutKeyMask|InputEvent.SHIFT_MASK));
+	            menu = new JMenu("Help");
+	            menuBar.add(menu);
+	            if (browser) {
+	                menu.add(jdWebSiteAction);
+	                menu.add(jdGuiIssuesActionAction);
+	                menu.add(jdCoreIssuesActionAction);
+	                menu.addSeparator();
+	            }
+	            menu.add(preferencesAction).setAccelerator(KeyStroke.getKeyStroke('P', menuShortcutKeyMask|InputEvent.SHIFT_MASK));
+	            if (!PlatformService.getInstance().isMac()) {
+	                menu.addSeparator();
+	                menu.add(aboutAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
             }
-            menu = new JMenu("Edit");
-            menuBar.add(menu);
-            menu.add(copyAction).setAccelerator(KeyStroke.getKeyStroke('C', menuShortcutKeyMask));
-            menu.add(pasteAction).setAccelerator(KeyStroke.getKeyStroke('V', menuShortcutKeyMask));
-            menu.addSeparator();
-            menu.add(selectAllAction).setAccelerator(KeyStroke.getKeyStroke('A', menuShortcutKeyMask));
-            menu.addSeparator();
-            menu.add(findAction).setAccelerator(KeyStroke.getKeyStroke('F', menuShortcutKeyMask));
-            menu = new JMenu("Navigation");
-            menuBar.add(menu);
-            menu.add(openTypeAction).setAccelerator(KeyStroke.getKeyStroke('T', menuShortcutKeyMask));
-            menu.add(openTypeHierarchyAction).setAccelerator(KeyStroke.getKeyStroke('H', menuShortcutKeyMask));
-            menu.addSeparator();
-            menu.add(goToAction).setAccelerator(KeyStroke.getKeyStroke('L', menuShortcutKeyMask));
-            menu.addSeparator();
-            menu.add(backwardAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_MASK));
-            menu.add(forwardAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_MASK));
-            menu = new JMenu("Search");
-            menuBar.add(menu);
-            menu.add(searchAction).setAccelerator(KeyStroke.getKeyStroke('S', menuShortcutKeyMask|InputEvent.SHIFT_MASK));
-            menu = new JMenu("Help");
-            menuBar.add(menu);
-            if (browser) {
-                menu.add(jdWebSiteAction);
-                menu.add(jdGuiIssuesActionAction);
-                menu.add(jdCoreIssuesActionAction);
-                menu.addSeparator();
-            }
-            menu.add(preferencesAction).setAccelerator(KeyStroke.getKeyStroke('P', menuShortcutKeyMask|InputEvent.SHIFT_MASK));
-            if (!PlatformService.getInstance().isMac()) {
-                menu.addSeparator();
-                menu.add(aboutAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
             }
             if(boundedness == EXTERNAL)
                 ((JFrame) mainFrame).setJMenuBar(menuBar);
@@ -317,96 +325,101 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             // Icon bar //
             JPanel panel = new JPanel();
             panel.setLayout(new BorderLayout());
-            toolBar = new JToolBar();
-            toolBar.setFloatable(false);
-            toolBar.setRollover(true);
-            toolBar.add(new IconButton(openAction));
-            toolBar.addSeparator();
-            toolBar.add(new IconButton(openTypeAction));
-            toolBar.add(new IconButton(searchAction));
-            toolBar.addSeparator();
-            toolBar.add(new IconButton(backwardAction));
-            toolBar.add(new IconButton(forwardAction));
+            if(toolBarOverride != null)
+            	toolBar = toolBarOverride;
+            else {
+            	toolBar = new JToolBar();
+	            toolBar.setFloatable(false);
+	            toolBar.setRollover(true);
+	            toolBar.add(new IconButton(openAction));
+	            toolBar.addSeparator();
+	            toolBar.add(new IconButton(openTypeAction));
+	            toolBar.add(new IconButton(searchAction));
+	            toolBar.addSeparator();
+	            toolBar.add(new IconButton(backwardAction));
+	            toolBar.add(new IconButton(forwardAction));	
+            }
             panel.add(toolBar, BorderLayout.PAGE_START);
 
-            if(mainTabbedPanelOverride == null)
-            	mainTabbedPanel = new MainTabbedPanel(api);
-            else
+            if(mainTabbedPanelOverride != null)
             	mainTabbedPanel = mainTabbedPanelOverride;
-            mainTabbedPanel.getPageChangedListeners().add(new PageChangeListener() {
-                protected JComponent currentPage = null;
-
-                @Override public <U extends JComponent & UriGettable> void pageChanged(U page) {
-                    if (currentPage != page) {
-                        // Update current page
-                        currentPage = page;
-                        currentPageChangedCallback.accept((T)page);
-
-                        invokeLater(() -> {
-                            if (page == null) {
-                                // Update title
-                            	if(boundedness == EXTERNAL)
-                                    ((JFrame) mainFrame).setTitle("Java Decompiler");
-                                else if(boundedness == INTERNAL)
-                                    ((JInternalFrame) mainFrame).setTitle("Java Decompiler");
-                                // Update menu
-                                saveAction.setEnabled(false);
-                                copyAction.setEnabled(false);
-                                selectAllAction.setEnabled(false);
-                                openTypeHierarchyAction.setEnabled(false);
-                                goToAction.setEnabled(false);
-                                // Update find panel
-                                findPanel.setVisible(false);
-                            } else {
-                                // Update title
-                                String path = page.getUri().getPath();
-                                int index = path.lastIndexOf('/');
-                                String name = (index == -1) ? path : path.substring(index + 1);
-                                if(boundedness == EXTERNAL)
-                                    ((JFrame) mainFrame).setTitle((name != null) ? name + " - Java Decompiler" : "Java Decompiler");
-                                else if(boundedness == INTERNAL)
-                                    ((JInternalFrame) mainFrame).setTitle((name != null) ? name + " - Java Decompiler" : "Java Decompiler");
-                                // Update history
-                                history.add(page.getUri());
-                                // Update history actions
-                                updateHistoryActions();
-                                // Update menu
-                                saveAction.setEnabled(page instanceof ContentSavable);
-                                copyAction.setEnabled(page instanceof ContentCopyable);
-                                selectAllAction.setEnabled(page instanceof ContentSelectable);
-                                findAction.setEnabled(page instanceof ContentSearchable);
-                                openTypeHierarchyAction.setEnabled(page instanceof FocusedTypeGettable);
-                                goToAction.setEnabled(page instanceof LineNumberNavigable);
-                                // Update find panel
-                                if (findPanel.isVisible()) {
-                                    findPanel.setVisible(page instanceof ContentSearchable);
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-            mainTabbedPanel.getTabbedPane().addChangeListener(new ChangeListener() {
-                protected int lastTabCount = 0;
-
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    int tabCount = mainTabbedPanel.getTabbedPane().getTabCount();
-                    boolean enabled = (tabCount > 0);
-
-                    closeAction.setEnabled(enabled);
-                    openTypeAction.setEnabled(enabled);
-                    searchAction.setEnabled(enabled);
-                    saveAllSourcesAction.setEnabled((mainTabbedPanel.getTabbedPane().getSelectedComponent() instanceof SourcesSavable));
-
-                    if (tabCount < lastTabCount) {
-                        panelClosedCallback.run();
-                    }
-
-                    lastTabCount = tabCount;
-                }
-            });
+            else {
+            	mainTabbedPanel = new MainTabbedPanel(api);
+	            mainTabbedPanel.getPageChangedListeners().add(new PageChangeListener() {
+	                protected JComponent currentPage = null;
+	
+	                @Override public <U extends JComponent & UriGettable> void pageChanged(U page) {
+	                    if (currentPage != page) {
+	                        // Update current page
+	                        currentPage = page;
+	                        currentPageChangedCallback.accept((T)page);
+	
+	                        invokeLater(() -> {
+	                            if (page == null) {
+	                                // Update title
+	                            	if(boundedness == EXTERNAL)
+	                                    ((JFrame) mainFrame).setTitle("Java Decompiler");
+	                                else if(boundedness == INTERNAL)
+	                                    ((JInternalFrame) mainFrame).setTitle("Java Decompiler");
+	                                // Update menu
+	                                saveAction.setEnabled(false);
+	                                copyAction.setEnabled(false);
+	                                selectAllAction.setEnabled(false);
+	                                openTypeHierarchyAction.setEnabled(false);
+	                                goToAction.setEnabled(false);
+	                                // Update find panel
+	                                findPanel.setVisible(false);
+	                            } else {
+	                                // Update title
+	                                String path = page.getUri().getPath();
+	                                int index = path.lastIndexOf('/');
+	                                String name = (index == -1) ? path : path.substring(index + 1);
+	                                if(boundedness == EXTERNAL)
+	                                    ((JFrame) mainFrame).setTitle((name != null) ? name + " - Java Decompiler" : "Java Decompiler");
+	                                else if(boundedness == INTERNAL)
+	                                    ((JInternalFrame) mainFrame).setTitle((name != null) ? name + " - Java Decompiler" : "Java Decompiler");
+	                                // Update history
+	                                history.add(page.getUri());
+	                                // Update history actions
+	                                updateHistoryActions();
+	                                // Update menu
+	                                saveAction.setEnabled(page instanceof ContentSavable);
+	                                copyAction.setEnabled(page instanceof ContentCopyable);
+	                                selectAllAction.setEnabled(page instanceof ContentSelectable);
+	                                findAction.setEnabled(page instanceof ContentSearchable);
+	                                openTypeHierarchyAction.setEnabled(page instanceof FocusedTypeGettable);
+	                                goToAction.setEnabled(page instanceof LineNumberNavigable);
+	                                // Update find panel
+	                                if (findPanel.isVisible()) {
+	                                    findPanel.setVisible(page instanceof ContentSearchable);
+	                                }
+	                            }
+	                        });
+	                    }
+	                }
+	            });
+	            mainTabbedPanel.getTabbedPane().addChangeListener(new ChangeListener() {
+	                protected int lastTabCount = 0;
+	
+	                @Override
+	                public void stateChanged(ChangeEvent e) {
+	                    int tabCount = mainTabbedPanel.getTabbedPane().getTabCount();
+	                    boolean enabled = (tabCount > 0);
+	
+	                    closeAction.setEnabled(enabled);
+	                    openTypeAction.setEnabled(enabled);
+	                    searchAction.setEnabled(enabled);
+	                    saveAllSourcesAction.setEnabled((mainTabbedPanel.getTabbedPane().getSelectedComponent() instanceof SourcesSavable));
+	
+	                    if (tabCount < lastTabCount) {
+	                        panelClosedCallback.run();
+	                    }
+	
+	                    lastTabCount = tabCount;
+	                }
+	            });
             mainTabbedPanel.preferencesChanged(configuration.getPreferences());
+        	}
             panel.add(mainTabbedPanel, BorderLayout.CENTER);
 
             panel.add(findPanel, BorderLayout.PAGE_END);
@@ -434,6 +447,14 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
     
     public MainTabbedPanel getMainTabbedPanel() {
     	return mainTabbedPanel;
+    }
+    
+    public JToolBar getToolBar() {
+    	return toolBar;
+    }
+    
+    public JMenuBar getMenuBar() {
+    	return menuBar;
     }
 
     public void showFindPanel() {

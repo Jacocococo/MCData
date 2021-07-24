@@ -39,8 +39,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLayer;
+import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JToolBar;
 import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
@@ -94,6 +96,7 @@ public class MainController implements API {
     protected Configuration configuration;
 	protected MainView mainView;
     protected JPanel internalContainer;
+    protected Runnable toggleInternal;
 
     protected GoToController goToController;
     protected OpenTypeController openTypeController;
@@ -110,9 +113,10 @@ public class MainController implements API {
     protected ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
     protected ArrayList<IndexesChangeListener> containerChangeListeners = new ArrayList<>();
 
-    public MainController(JPanel internalContainer, Configuration configuration) {
+    public MainController(JPanel internalContainer, Configuration configuration, Runnable toggleInternal) {
     	this.internalContainer = internalContainer;
         this.configuration = configuration;
+        this.toggleInternal = toggleInternal;
 
         SwingUtil.invokeLater(() -> {
             if (PlatformService.getInstance().isLinux()) {
@@ -120,14 +124,16 @@ public class MainController implements API {
                 SwingUtil.installGtkPopupBugWorkaround();
             }
             // Create main frame
-            mainView = createView(MainView.INTERNAL, null);
+            mainView = createView(MainView.INTERNAL, null, null, null);
         });
 	}
     
     @SuppressWarnings("unchecked")
-	protected MainView createView(int boundedness, MainTabbedPanel mainTabbedPanel) {
+	protected MainView createView(int boundedness, MainTabbedPanel mainTabbedPanel, JToolBar toolBar, JMenuBar menuBar) {
     	return new MainView(
-				boundedness, configuration, this, mainTabbedPanel, history,
+				boundedness, configuration, this,
+				mainTabbedPanel, toolBar, menuBar,
+				history,
                 e -> onOpen(),
                 e -> onClose(),
                 e -> onSaveSource(),
@@ -526,12 +532,13 @@ public class MainController implements API {
 	public void onWindowClose() {
         Component comp = mainView.getMainFrame();
         MainTabbedPanel mainTabbedPanel = mainView.getMainTabbedPanel();
+        JToolBar toolBar = mainView.getToolBar();
+        JMenuBar menuBar = mainView.getMenuBar();
         if(comp instanceof JFrame)
-            this.mainView = createView(MainView.INTERNAL, mainTabbedPanel);
+            this.mainView = createView(MainView.INTERNAL, mainTabbedPanel, toolBar, menuBar);
         else if(comp instanceof JInternalFrame)
-            this.mainView = createView(MainView.EXTERNAL, mainTabbedPanel);
+            this.mainView = createView(MainView.EXTERNAL, mainTabbedPanel, toolBar, menuBar);
         SwingUtil.invokeLater(() -> {
-            // Show main frame
             Component newComp = mainView.getMainFrame();
             if(newComp instanceof JFrame)
                 mainView.show(configuration.getMainWindowLocation(), configuration.getMainWindowSize(), configuration.isMainWindowMaximize());
@@ -540,6 +547,7 @@ public class MainController implements API {
                 newComp.setVisible(true);
             }
         });
+		toggleInternal.run();
     }
 
     // --- Drop files transfer handler --- //
