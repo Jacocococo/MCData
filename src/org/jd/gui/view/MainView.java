@@ -18,6 +18,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -133,7 +134,8 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             Runnable panelClosedCallback,
             Consumer<T> currentPageChangedCallback,
             Consumer<File> openFilesCallback,
-            Runnable windowCloseAction) {
+            Runnable windowCloseAction,
+            ComponentListener mainFrameListener) {
         this.history = history;
         this.openFilesCallback = openFilesCallback;
         // Build GUI
@@ -428,6 +430,7 @@ public class MainView<T extends JComponent & UriGettable> implements UriOpenable
             else if(boundedness == INTERNAL)
                 ((JInternalFrame) mainFrame).add(panel);
         });
+        mainFrame.addComponentListener(mainFrameListener);
     }
 
     public void show(Point location, Dimension size, boolean maximize) {

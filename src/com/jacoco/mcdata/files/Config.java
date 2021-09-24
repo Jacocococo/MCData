@@ -15,8 +15,6 @@ import com.jacoco.mcdata.Utils;
 
 public class Config {
 
-	private final String fn = "Config.json";
-	
 	private JSONObject jo;
 	
 	private Path sourcesPath;
@@ -24,16 +22,24 @@ public class Config {
 	
 	private Path export;
 	
-	public Config() {
-		this.sourcesPath = Paths.get(ClassLoader.getSystemClassLoader().getResource(".").getPath().substring(1)).resolve("Sources");
-		this.cfg = this.sourcesPath.resolve(fn).toFile();
-		
+	@SuppressWarnings("unchecked")
+	public Config() {		
 		try {
+			this.sourcesPath = new File("Sources").getAbsoluteFile().toPath();
+			this.cfg = this.sourcesPath.resolve("Config.json").toFile();
+
 			if(!cfg.exists()) {
 				Files.createDirectories(this.sourcesPath);
 				this.export = this.sourcesPath.resolve("Export");
 				Files.createDirectories(this.export);
-				setupConfig(this.cfg);
+				
+				this.jo = new JSONObject(); 
+		        jo.put("exportPath", this.export.toString());
+		        jo.put("jd", null);
+		        
+		        try (PrintWriter writer = new PrintWriter(cfg)) {
+		        	writer.write(Utils.prettyPrint(jo.toJSONString())); 
+		        }
 			} else {
 				this.jo = (JSONObject) JSONValue.parse(new FileReader(this.cfg)); 
 
@@ -46,19 +52,6 @@ public class Config {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	private void setupConfig(File path) throws IOException {
-        this.jo = new JSONObject(); 
-        
-        jo.put("theme", "Light Mode");
-        jo.put("exportPath", this.export.toString());
-        jo.put("jd", null);
-        
-        PrintWriter writer = new PrintWriter(cfg);
-        writer.write(Utils.prettyPrint(jo.toJSONString())); 
-        writer.close(); 
 	}
 	
 	public Path getSourcesPath() {
@@ -75,26 +68,20 @@ public class Config {
 	
 	@SuppressWarnings("unchecked")
 	public void setExportPath(String path) {
-		try {
-			this.export = Paths.get(path);
-			this.jo.replace("exportPath", path);
-			PrintWriter writer = new PrintWriter(this.cfg);
-		    writer.write(Utils.prettyPrint(this.jo.toJSONString()));
-		    writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
+		this.export = Paths.get(path);
+		this.jo.replace("exportPath", path);
+		write();
 	}
 	
 	@SuppressWarnings("unchecked")
 	public void saveJDConfig(JSONObject jo) {
-		try {
-			this.jo.replace("jd", jo);
-			PrintWriter writer;
-			writer = new PrintWriter(this.cfg);
-		    writer.write(Utils.prettyPrint(this.jo.toJSONString()));
-		    writer.close();
+		this.jo.replace("jd", jo);
+		write();
+	}
+	
+	private void write() {
+		try (PrintWriter writer = new PrintWriter(this.cfg)) {
+			writer.write(Utils.prettyPrint(this.jo.toJSONString()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

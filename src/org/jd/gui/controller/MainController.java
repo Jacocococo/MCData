@@ -43,7 +43,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
-import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 
@@ -108,6 +107,7 @@ public class MainController implements API {
     protected AboutController aboutController;
     protected SourceLoaderService sourceLoaderService;
 
+    protected MainFrameListener mainFrameListener;
     protected History history = new History();
     protected JComponent currentPage = null;
     protected ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
@@ -117,6 +117,7 @@ public class MainController implements API {
     	this.internalContainer = internalContainer;
         this.configuration = configuration;
         this.toggleInternal = toggleInternal;
+        this.mainFrameListener = new MainFrameListener(configuration);
 
         SwingUtil.invokeLater(() -> {
             if (PlatformService.getInstance().isLinux()) {
@@ -161,7 +162,8 @@ public class MainController implements API {
                 () -> panelClosed(),
                 page -> onCurrentPageChanged((JComponent)page),
                 file -> openFile((File)file),
-                () -> onWindowClose());
+                () -> onWindowClose(),
+                mainFrameListener);
     }
 
 	// --- Show GUI --- //
@@ -203,10 +205,6 @@ public class MainController implements API {
             selectLocationController = new SelectLocationController(MainController.this, mainFrame);
             aboutController = new AboutController(mainFrame);
             sourceLoaderService = new SourceLoaderService();
-            // Add listeners
-            mainFrame.addComponentListener(new MainFrameListener(configuration));
-            // Set drop files transfer handler
-            mainFrame.setTransferHandler(new FilesTransferHandler());
             // Background class loading
             new JFileChooser().addChoosableFileFilter(new FileNameExtensionFilter("", "dummy"));
             FileSystemView.getFileSystemView().isFileSystemRoot(new File("dummy"));
@@ -548,28 +546,6 @@ public class MainController implements API {
             }
         });
 		toggleInternal.run();
-    }
-
-    // --- Drop files transfer handler --- //
-    protected class FilesTransferHandler extends TransferHandler {
-        @Override
-        public boolean canImport(TransferHandler.TransferSupport info) {
-            return info.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public boolean importData(TransferHandler.TransferSupport info) {
-            if (info.isDrop() && info.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                try {
-                    openFiles((List<File>)info.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
-                    return true;
-                } catch (Exception e) {
-                    assert ExceptionUtil.printStackTrace(e);
-                }
-            }
-            return false;
-        }
     }
 
     // --- ComponentListener --- //
