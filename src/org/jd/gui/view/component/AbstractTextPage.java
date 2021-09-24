@@ -77,7 +77,7 @@ public class AbstractTextPage extends JPanel implements LineNumberNavigable, Con
         inputMap.put(ctrlV, "none");
 
         try {
-            Theme theme = Theme.load(getClass().getClassLoader().getResourceAsStream("rsyntaxtextarea/themes/eclipse.xml"));
+            Theme theme = Theme.load(getClass().getClassLoader().getResourceAsStream("rsyntaxtextarea/themes/light.xml"));
             theme.apply(textArea);
         } catch (IOException e) {
             assert ExceptionUtil.printStackTrace(e);

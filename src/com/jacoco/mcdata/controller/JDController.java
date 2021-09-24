@@ -1,34 +1,36 @@
 package com.jacoco.mcdata.controller;
 
+import java.awt.BorderLayout;
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javax.swing.JPanel;
+
 import org.jd.gui.JDGui;
 
 import com.jacoco.mcdata.files.Config;
-import com.jacoco.mcdata.view.JDView;
-import com.jacoco.mcdata.view.View;
 
 public class JDController {
 
-	private JDView view;
 	private JDGui jd;
+	private JPanel view;
 	
 	private boolean visible = false;
-	private Consumer<View> onViewShown;
-	private Consumer<View> onViewHidden;
+	private Consumer<JPanel> onViewShown;
+	private Consumer<JPanel> onViewHidden;
 	
-	public JDController(Config cfg, Consumer<View> onViewShown, Consumer<View> onViewHidden) {
+	public JDController(Config cfg, Consumer<JPanel> onViewShown, Consumer<JPanel> onViewHidden) {
 		this.onViewShown = onViewShown;
 		this.onViewHidden = onViewHidden;
 		
-		this.view = new JDView(cfg.getTheme());
-		this.jd = new JDGui(view.getPanel(), cfg, this::toggleVisible);
+		this.view = new JPanel();
+		view.setLayout(new BorderLayout());
+		this.jd = new JDGui(view, cfg, this::toggleVisible);
 		jd.show();
 	}
 	
-	public JDView getView() {
+	public JPanel getView() {
 		return this.view;
 	}
 	

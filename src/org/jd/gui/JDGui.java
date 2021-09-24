@@ -12,8 +12,6 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JPanel;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import org.jd.gui.controller.MainController;
 import org.jd.gui.model.configuration.Configuration;
@@ -39,12 +37,6 @@ public class JDGui {
 	public void show() {
         new Thread(
 	        () -> {
-	        	try {
-					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-						| UnsupportedLookAndFeelException e) {
-					e.printStackTrace();
-				}
 	        	// Create main controller and show main frame
 	            controller = new MainController(parent, configuration, toggleVisibility);
 	            controller.show(Collections.emptyList());

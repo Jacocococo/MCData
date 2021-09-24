@@ -2,8 +2,8 @@ package com.jacoco.mcdata.files;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.PrintWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,7 +12,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import com.jacoco.mcdata.Utils;
-import com.jacoco.mcdata.Theme;
 
 public class Config {
 
@@ -23,8 +22,6 @@ public class Config {
 	private Path sourcesPath;
 	private File cfg;
 	
-	private Theme thm;
-	private String theme;
 	private Path export;
 	
 	public Config() {
@@ -37,22 +34,13 @@ public class Config {
 				this.export = this.sourcesPath.resolve("Export");
 				Files.createDirectories(this.export);
 				setupConfig(this.cfg);
-				this.thm = Theme.LIGHT;
 			} else {
 				this.jo = (JSONObject) JSONValue.parse(new FileReader(this.cfg)); 
-				this.theme = jo.get("theme").toString();
 
 				try{
 					export = Paths.get(jo.get("exportPath").toString());
 				} catch (NullPointerException e) {
 					export = this.sourcesPath.resolve("Export");
-				}
-				
-				switch(this.theme) {
-					case "Light Mode" : this.thm = Theme.LIGHT;
-					break;
-					case "Dark Mode" : this.thm = Theme.DARK;
-					break; 
 				}
 			}
 		} catch (IOException e) {
@@ -81,10 +69,6 @@ public class Config {
 		return this.export;
 	}
 	
-	public Theme getTheme() {
-		return this.thm;
-	}
-	
 	public JSONObject getJD() {
 		return (JSONObject) this.jo.get("jd");
 	}
@@ -101,19 +85,6 @@ public class Config {
 			e.printStackTrace();
 		}
 		
-	}
-	
-	@SuppressWarnings("unchecked")
-	public void setTheme(String color) {
-		try {
-			this.thm = Theme.getThemeFromName(color);
-		    this.jo.replace("theme", color);
-			PrintWriter writer = new PrintWriter(this.cfg);
-		    writer.write(Utils.prettyPrint(this.jo.toJSONString()));
-		    writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	@SuppressWarnings("unchecked")

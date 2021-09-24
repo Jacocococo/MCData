@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class TabbedPanel<T extends JComponent & UriGettable> extends JPanel implements PreferencesChangeListener {
 	protected static final ImageIcon CLOSE_ICON = new ImageIcon(TabbedPanel.class.getResource("/org/jd/gui/images/close.gif"));
-    protected static final ImageIcon  CLOSE_ACTIVE_ICON = new ImageIcon(TabbedPanel.class.getResource("/org/jd/gui/images/close_active.gif"));
+    protected static final ImageIcon CLOSE_ACTIVE_ICON = new ImageIcon(TabbedPanel.class.getResource("/org/jd/gui/images/close_active.gif"));
 
     protected static final String TAB_LAYOUT = "UITabsPreferencesProvider.singleLineTabs";
 

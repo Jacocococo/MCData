@@ -61,7 +61,7 @@ public class ViewerPreferencesProvider extends JPanel implements PreferencesPane
             RSyntaxTextArea textArea = new RSyntaxTextArea();
 
             try {
-                Theme theme = Theme.load(getClass().getClassLoader().getResourceAsStream("rsyntaxtextarea/themes/eclipse.xml"));
+                Theme theme = Theme.load(getClass().getClassLoader().getResourceAsStream("rsyntaxtextarea/themes/light.xml"));
                 theme.apply(textArea);
             } catch (IOException e) {
                 assert ExceptionUtil.printStackTrace(e);

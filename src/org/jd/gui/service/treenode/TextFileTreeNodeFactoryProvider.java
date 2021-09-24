@@ -33,7 +33,7 @@ public class TextFileTreeNodeFactoryProvider extends FileTreeNodeFactoryProvider
         // Early class loading
         new Gutter(new RSyntaxTextArea());
         try {
-            Theme.load(TextFileTreeNodeFactoryProvider.class.getClassLoader().getResourceAsStream("rsyntaxtextarea/themes/eclipse.xml"));
+            Theme.load(TextFileTreeNodeFactoryProvider.class.getClassLoader().getResourceAsStream("rsyntaxtextarea/themes/light.xml"));
         } catch (IOException e) {
             assert ExceptionUtil.printStackTrace(e);
         }
