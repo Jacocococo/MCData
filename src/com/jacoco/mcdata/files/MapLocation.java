@@ -34,7 +34,7 @@ public class MapLocation {
 		// finding the map
        	Object obj = null;
     	try {
-   			obj = new JSONParser().parse(new FileReader(loc+json));
+   			obj = new JSONParser().parse(new FileReader(loc.resolve(json).toString()));
    		} catch (IOException | ParseException e) {
    			e.printStackTrace();
    		}
