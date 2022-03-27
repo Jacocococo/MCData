@@ -50,6 +50,5 @@ public class JDController {
 			onViewShown.accept(this.view);
 			visible = true;
 		}
-			
 	}
 }

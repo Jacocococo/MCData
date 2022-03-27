@@ -37,7 +37,6 @@ public class JDGui {
 	public void show() {
         new Thread(
 	        () -> {
-	        	// Create main controller and show main frame
 	            controller = new MainController(parent, configuration, toggleVisibility);
 	            controller.show(Collections.emptyList());
 	            toggleVisibility.run();

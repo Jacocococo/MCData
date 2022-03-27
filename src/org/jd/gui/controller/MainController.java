@@ -90,6 +90,8 @@ import org.jd.gui.util.swing.SwingUtil;
 import org.jd.gui.view.MainView;
 import org.jd.gui.view.component.panel.MainTabbedPanel;
 
+import com.jacoco.mcdata.controller.ProgressController;
+
 @SuppressWarnings("rawtypes")
 public class MainController implements API {
     protected Configuration configuration;
@@ -209,6 +211,9 @@ public class MainController implements API {
             new JFileChooser().addChoosableFileFilter(new FileNameExtensionFilter("", "dummy"));
             FileSystemView.getFileSystemView().isFileSystemRoot(new File("dummy"));
             new JLayer();
+            ProgressController.getInstance().newProgress(1);
+            ProgressController.getInstance().step();
+            ProgressController.getInstance().finishProgress();
         }, 400, TimeUnit.MILLISECONDS);
 
         PasteHandlerService.getInstance();

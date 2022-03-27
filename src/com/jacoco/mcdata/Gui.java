@@ -12,6 +12,7 @@ import javax.swing.JPanel;
 import com.jacoco.mcdata.controller.ActionsController;
 import com.jacoco.mcdata.controller.InitializationController;
 import com.jacoco.mcdata.controller.JDController;
+import com.jacoco.mcdata.controller.ProgressController;
 import com.jacoco.mcdata.files.Config;
 import com.jacoco.mcdata.files.Deobfuscation;
 
@@ -21,7 +22,7 @@ import cuchaz.enigma.translation.mapping.serde.MappingFormat;
 public class Gui {
 
 	private JFrame frame;
-	private BorderLayout layout;
+	private JPanel mainPanel;
 	private final Dimension DEFAULT_SIZE = new Dimension(1000, 800);
 	
 	private Deobfuscation deobf;
@@ -29,9 +30,11 @@ public class Gui {
 	public Gui(Config cfg) {
 		this.deobf = new Deobfuscation(MappingFormat.PROGUARD, EnigmaProfile.EMPTY);
 		this.frame = new JFrame("MCData");
+		this.mainPanel = new JPanel();
 
-		this.layout = new BorderLayout();
-		frame.setLayout(this.layout);
+		frame.setLayout(new BorderLayout());
+		mainPanel.setLayout(new BorderLayout());
+		mainPanel.setPreferredSize(new Dimension(1920, 1080));
 		
 		frame.setSize(DEFAULT_SIZE);
 		frame.setMinimumSize(DEFAULT_SIZE);
@@ -52,13 +55,16 @@ public class Gui {
 
 		InitializationController initController = new InitializationController(cfg);
 		addView(initController.getView(), BorderLayout.NORTH);
-		frame.add(west, BorderLayout.WEST);
+		mainPanel.add(west, BorderLayout.WEST);
 		JDController jdController = new JDController(cfg,
 				view -> addView(view, BorderLayout.CENTER),
 				view -> removeView(view, true));
-		frame.add(east, BorderLayout.EAST);
+		mainPanel.add(east, BorderLayout.EAST);
 		ActionsController actionsController = new ActionsController(initController, jdController, cfg, deobf, this::onClose);
 		addView(actionsController.getView(), BorderLayout.SOUTH);
+		
+		frame.add(mainPanel, BorderLayout.CENTER);
+		frame.add(ProgressController.getInstance().getView(), BorderLayout.SOUTH);
 	}
 
 	public void show() {
@@ -89,21 +95,21 @@ public class Gui {
 			this.frame.setLocation(0, (int) this.frame.getLocation().getY());
 		if(this.frame.getLocation().getY() < 0)
 			this.frame.setLocation((int) this.frame.getLocation().getX(), 0);
-		this.frame.add(view, constraint);
+		this.mainPanel.add(view, constraint);
 	}
 	
 	public void removeView(JPanel view, boolean isCenter) {
-		this.frame.remove(view);
+		this.mainPanel.remove(view);
 		if(isCenter && this.frame.getSize().equals(DEFAULT_SIZE)) {
 			Point currentLoc = this.frame.getLocation();
-			Dimension size = new Dimension(650, 275);
+			Dimension size = new Dimension(650, 300);
 			frame.setMinimumSize(size);
 			frame.setSize(size);
 			this.frame.setLocation((int) (currentLoc.getX() + (DEFAULT_SIZE.getWidth() - size.getWidth()) / 2),
 								   (int) (currentLoc.getY() + (DEFAULT_SIZE.getHeight() - size.getHeight()) / 2));
 		}
-		this.frame.revalidate();
-		this.frame.repaint();
+		this.mainPanel.revalidate();
+		this.mainPanel.repaint();
 	}
 	
 	public void removeView(JPanel view) {

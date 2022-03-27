@@ -7,13 +7,6 @@
 
 package org.jd.gui.service.type;
 
-import org.jd.gui.api.API;
-import org.jd.gui.api.model.Container;
-import org.jd.gui.api.model.Type;
-import org.jd.gui.util.exception.ExceptionUtil;
-import org.objectweb.asm.*;
-
-import javax.swing.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -21,6 +14,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import javax.swing.Icon;
+
+import org.jd.gui.Constants;
+import org.jd.gui.api.API;
+import org.jd.gui.api.model.Container;
+import org.jd.gui.api.model.Type;
+import org.jd.gui.util.exception.ExceptionUtil;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 public class ClassFileTypeFactoryProvider extends AbstractTypeFactoryProvider {
 
@@ -137,7 +143,7 @@ public class ClassFileTypeFactoryProvider extends AbstractTypeFactoryProvider {
         protected JavaType(Container.Entry entry, ClassReader classReader, final int outerAccess) {
             this.entry = entry;
 
-            ClassVisitor classAndInnerClassesVisitor = new ClassVisitor(Opcodes.ASM7) {
+            ClassVisitor classAndInnerClassesVisitor = new ClassVisitor(Constants.ASM_VERSION) {
                 @Override
                 public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                     JavaType.this.access = (outerAccess == -1) ? access : outerAccess;
@@ -193,7 +199,7 @@ public class ClassFileTypeFactoryProvider extends AbstractTypeFactoryProvider {
                 displayTypeName = displayTypeName.substring(lastPackageSeparatorIndex+1);
             }
 
-            ClassVisitor fieldsAndMethodsVisitor = new ClassVisitor(Opcodes.ASM7) {
+            ClassVisitor fieldsAndMethodsVisitor = new ClassVisitor(Constants.ASM_VERSION) {
                 @Override
                 public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
                     if ((access & (Opcodes.ACC_SYNTHETIC|Opcodes.ACC_ENUM)) == 0) {
@@ -298,7 +304,7 @@ public class ClassFileTypeFactoryProvider extends AbstractTypeFactoryProvider {
         protected String innerName;
 
         public InnerClassVisitor(String name) {
-            super(Opcodes.ASM7);
+            super(Constants.ASM_VERSION);
             this.name = name;
         }
 

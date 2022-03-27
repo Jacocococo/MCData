@@ -7,6 +7,8 @@
 
 package org.jd.gui;
 
+import org.objectweb.asm.Opcodes;
+
 public class Constants {
 	public static final String APP_NAME = "JD-GUI";
 
@@ -18,4 +20,6 @@ public class Constants {
 
 	public static final int MAX_RECENT_FILES = 10;
 	public static final int RECENT_FILE_MAX_LENGTH = 200;
+	
+	public static final int ASM_VERSION = Opcodes.ASM9;
 }

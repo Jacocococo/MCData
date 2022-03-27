@@ -1,30 +1,49 @@
 package com.jacoco.mcdata.files;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.nio.file.Path;
-import java.util.concurrent.CompletableFuture;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 
+import com.google.common.base.Functions;
 import com.jacoco.mcdata.Main;
+import com.jacoco.mcdata.Utils;
 import com.jacoco.mcdata.version.Version;
 
 import cuchaz.enigma.Enigma;
 import cuchaz.enigma.EnigmaProfile;
 import cuchaz.enigma.EnigmaProject;
 import cuchaz.enigma.ProgressListener;
-import cuchaz.enigma.gui.dialog.ProgressDialog.ProgressRunnable;
+import cuchaz.enigma.analysis.index.JarIndex;
+import cuchaz.enigma.api.service.JarIndexerService;
+import cuchaz.enigma.api.service.NameProposalService;
+import cuchaz.enigma.bytecode.translators.TranslationClassVisitor;
+import cuchaz.enigma.classprovider.CachingClassProvider;
+import cuchaz.enigma.classprovider.ClassProvider;
+import cuchaz.enigma.classprovider.ClasspathClassProvider;
+import cuchaz.enigma.classprovider.CombiningClassProvider;
+import cuchaz.enigma.classprovider.JarClassProvider;
+import cuchaz.enigma.classprovider.ObfuscationFixClassProvider;
+import cuchaz.enigma.translation.ProposingTranslator;
+import cuchaz.enigma.translation.Translator;
 import cuchaz.enigma.translation.mapping.EntryMapping;
+import cuchaz.enigma.translation.mapping.EntryRemapper;
 import cuchaz.enigma.translation.mapping.serde.MappingFormat;
 import cuchaz.enigma.translation.mapping.tree.EntryTree;
-import cuchaz.enigma.utils.Utils;
+import cuchaz.enigma.translation.representation.entry.ClassDefEntry;
+import cuchaz.enigma.translation.representation.entry.ClassEntry;
+import cuchaz.enigma.utils.I18n;
 
 public class Deobfuscation {
 
@@ -40,107 +59,95 @@ public class Deobfuscation {
 	public void export(Path exportPath, Version version) {
 		version.setExportedJar(exportPath.resolve(version.getName() + ".jar"));
 
-		try (ProgressDialog pd = new ProgressDialog()) {
-			pd.runOffThread(progress -> {
-				pd.frame.setTitle("Exporting Jar 1/4");
-				EnigmaProject project = enigma.openJar(version.getOriginalJar(), progress);
-				
-				pd.frame.setTitle("Exporting Jar 2/4");
-				Path downloadedMap = version.getObfuscationMap().downloadFile(Main.tmpDir, progress);
-				
-				pd.frame.setTitle("Exporting Jar 3/4");
-				EntryTree<EntryMapping> mappings = format.read(downloadedMap, progress, null);
-				project.setMappings(mappings);
+		Utils.mapProgressListener(progress -> {
+			EnigmaProject project = openJar(version.getOriginalJar(), (ClassProvider) new ClasspathClassProvider(), progress);
+			
+			Path downloadedMap = version.getObfuscationMap().downloadFile(Main.tmpDir, progress);
+			
+			EntryTree<EntryMapping> mappings = format.read(downloadedMap, progress, this.enigma.getProfile().getMappingSaveParameters());
+			project.setMappings(mappings);
+
+			EnigmaProject.JarExport jar = project.exportRemappedJar(progress);
+			jar.write(version.getExportedJar(), progress);
+			
+			onFinish.run();
+		});
+	}
 	
-				EnigmaProject.JarExport jar = project.exportRemappedJar(progress);
-				pd.frame.setTitle("Exporting Jar 4/4");
-				jar.write(version.getExportedJar(), progress);
-			});
-		}
+	private EnigmaProject openJar(Path path, ClassProvider libraryClassProvider, ProgressListener progress) throws IOException {
+		JarClassProvider jarClassProvider = new JarClassProvider(path);
+		ClassProvider classProvider = new CachingClassProvider(new CombiningClassProvider(jarClassProvider, libraryClassProvider));
+		Set<String> scope = jarClassProvider.getClassNames();
+
+		JarIndex index = JarIndex.empty();
+		index.indexJar(scope, classProvider, progress);
+		enigma.getServices().get(JarIndexerService.TYPE).forEach(indexer -> indexer.acceptJar(scope, classProvider, index));
+
+		return new EnigmaProject(enigma, path, classProvider, index, cuchaz.enigma.utils.Utils.zipSha1(path)) {
+			public JarExport exportRemappedJar(ProgressListener progress) {
+				Collection<ClassEntry> classEntries = getJarIndex().getEntryIndex().getClasses();
+				ClassProvider fixingClassProvider = new ObfuscationFixClassProvider(getClassProvider(), getJarIndex());
+
+				NameProposalService[] nameProposalServices = getEnigma().getServices().get(NameProposalService.TYPE).toArray(new NameProposalService[0]);
+				Translator deobfuscator = nameProposalServices.length == 0 ? getMapper().getDeobfuscator() : new ProposingTranslator(getMapper(), nameProposalServices);
+
+				AtomicInteger count = new AtomicInteger();
+				progress.init(classEntries.size(), I18n.translate("progress.classes.deobfuscating"));
+
+				Map<String, ClassNode> compiled = classEntries.parallelStream()
+						.map(entry -> {
+							@SuppressWarnings("deprecation")
+							ClassEntry translatedEntry = deobfuscator.translate(entry);
+							progress.step(count.getAndIncrement(), translatedEntry.toString());
+
+							ClassNode node = fixingClassProvider.get(entry.getFullName());
+							if (node != null) {
+								ClassNode translatedNode = new ClassNode();
+								if(((ClassDefEntry) entry).getSuperClass().getName().equals("java/lang/Record")) {
+									for(int i = 0; i < node.methods.size(); i++) {
+										for(AbstractInsnNode insn : node.methods.get(i).instructions) {
+											if(insn instanceof InvokeDynamicInsnNode) {
+												InvokeDynamicInsnNode newInsn = (InvokeDynamicInsnNode) insn;
+												for(int j = 0; j < newInsn.bsmArgs.length; j++) {
+													if(newInsn.bsmArgs[j] instanceof Handle) {
+														try {
+															Field fDesc = Handle.class.getDeclaredField("descriptor");
+															fDesc.setAccessible(true);
+															String desc = (String) fDesc.get(((Handle) newInsn.bsmArgs[j]));
+															if(!desc.startsWith("("))
+																fDesc.set(((Handle) newInsn.bsmArgs[j]), "()" + desc);
+														} catch (Exception e) {
+															e.printStackTrace();
+														}
+													}
+												}
+												node.methods.get(i).instructions.set(insn, newInsn);
+											}
+										}
+									}
+								}
+								node.accept(new TranslationClassVisitor(deobfuscator, Enigma.ASM_VERSION, translatedNode));
+								return translatedNode;
+							}
+
+							return null;
+						})
+						.filter(Objects::nonNull)
+						.collect(Collectors.toMap(n -> n.name, Functions.identity()));
+
+				try {
+					Constructor<JarExport> constructor = JarExport.class.getDeclaredConstructor(EntryRemapper.class, Map.class);
+					constructor.setAccessible(true);
+					return constructor.newInstance(getMapper(), compiled);
+				} catch (Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		};
 	}
 	
 	public void addOnFinishEvent(Runnable runnable) {
 		this.onFinish = runnable;
-	}
-
-	class ProgressDialog implements ProgressListener, AutoCloseable {
-		private JFrame frame = new JFrame(String.format("Progress", new Object[] { "Enigma" }));
-		
-		private JLabel labelTitle;
-
-		private JLabel labelText;
-
-		private JProgressBar progress;
-		
-		public void setup() {
-			Container pane = this.frame.getContentPane();
-			FlowLayout layout = new FlowLayout();
-			layout.setAlignment(0);
-			pane.setLayout(layout);
-			this.labelTitle = new JLabel();
-			pane.add(this.labelTitle);
-			JPanel panel = new JPanel();
-			pane.add(panel);
-			panel.setLayout(new BorderLayout());
-			this.labelText = Utils.unboldLabel(new JLabel());
-			this.progress = new JProgressBar();
-			this.labelText.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-			panel.add(this.labelText, "North");
-			panel.add(this.progress, "Center");
-			panel.setPreferredSize(new Dimension(360, 50));
-			pane.doLayout();
-			this.frame.setSize(400, 120);
-			this.frame.setResizable(false);
-			this.frame.setLocationRelativeTo(null);
-			this.frame.setVisible(true);
-			this.frame.setDefaultCloseOperation(0);
-		}
-
-		public CompletableFuture<Void> runOffThread(ProgressRunnable runnable) {
-			OnExport onExport = new OnExport() {
-				public Void run() {
-					try (ProgressDialog progress = ProgressDialog.this) {
-						progress.setup();
-						runnable.run(progress);
-					} catch (Exception ex) {
-						throw new Error(ex);
-					}
-					return null;
-				}
-
-				public Void finish(Void arg) {
-					onFinish.run();
-					return null;
-				}
-			};
-			
-			CompletableFuture<Void> future = CompletableFuture.supplyAsync(onExport::run);
-			future.thenApplyAsync(onExport::finish);
-			
-			return future;
-		}
-
-		public void close() {
-			this.frame.dispose();
-		}
-
-		public void init(int totalWork, String title) {
-			this.labelTitle.setText(title);
-			this.progress.setMinimum(0);
-			this.progress.setMaximum(totalWork);
-			this.progress.setValue(0);
-		}
-
-		public void step(int numDone, String message) {
-			this.labelText.setText(message);
-			if (numDone != -1) {
-				this.progress.setValue(numDone);
-				this.progress.setIndeterminate(false);
-			} else {
-				this.progress.setIndeterminate(true);
-			}
-			this.frame.validate();
-			this.frame.repaint();
-		}
 	}
 }

@@ -7,16 +7,21 @@
 
 package org.jd.gui.service.indexer;
 
-import org.jd.gui.api.API;
-import org.jd.gui.api.model.Container;
-import org.jd.gui.api.model.Indexes;
-import org.jd.gui.util.exception.ExceptionUtil;
-import org.objectweb.asm.*;
+import static org.objectweb.asm.ClassReader.SKIP_CODE;
+import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
+import static org.objectweb.asm.ClassReader.SKIP_FRAMES;
 
 import java.io.InputStream;
 import java.util.HashSet;
 
-import static org.objectweb.asm.ClassReader.*;
+import org.jd.gui.Constants;
+import org.jd.gui.api.API;
+import org.jd.gui.api.model.Container;
+import org.jd.gui.api.model.Indexes;
+import org.jd.gui.util.exception.ExceptionUtil;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ModuleVisitor;
 
 /**
  * Unsafe thread implementation of class file indexer.
@@ -55,7 +60,7 @@ public class JavaModuleInfoFileIndexerProvider extends AbstractIndexerProvider {
     protected class ClassIndexer extends ClassVisitor {
         protected ModuleIndexer moduleIndexer = new ModuleIndexer();
 
-        public ClassIndexer() { super(Opcodes.ASM7); }
+        public ClassIndexer() { super(Constants.ASM_VERSION); }
 
         @Override
         public ModuleVisitor visitModule(String moduleName, int moduleFlags, String moduleVersion) {
@@ -65,7 +70,7 @@ public class JavaModuleInfoFileIndexerProvider extends AbstractIndexerProvider {
     }
 
     protected class ModuleIndexer extends ModuleVisitor {
-        public ModuleIndexer() { super(Opcodes.ASM7); }
+        public ModuleIndexer() { super(Constants.ASM_VERSION); }
 
         @Override public void visitMainClass(final String mainClass) { typeReferenceSet.add(mainClass); }
         @Override public void visitRequire(final String module, final int access, final String version) { javaModuleReferenceSet.add(module); }

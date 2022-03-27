@@ -7,18 +7,18 @@
 
 package org.jd.gui.util.container;
 
-import org.jd.gui.api.model.Container;
-import org.jd.gui.model.container.ContainerEntryComparator;
-import org.jd.gui.util.exception.ExceptionUtil;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+
+import org.jd.gui.Constants;
+import org.jd.gui.api.model.Container;
+import org.jd.gui.model.container.ContainerEntryComparator;
+import org.jd.gui.util.exception.ExceptionUtil;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 
 public class JarContainerEntryUtil {
     public static Collection<Container.Entry> removeInnerTypeEntries(Collection<Container.Entry> entries) {
@@ -96,7 +96,7 @@ public class JarContainerEntryUtil {
             String p = entry.getPath();
             final String prefixPath = p.substring(0, p.length() - classReader.getClassName().length() - 6);
 
-            ClassVisitor classVisitor = new ClassVisitor(Opcodes.ASM7) {
+            ClassVisitor classVisitor = new ClassVisitor(Constants.ASM_VERSION) {
                 public void visitInnerClass(final String name, final String outerName, final String innerName, final int access) {
                     innerTypePaths.add(prefixPath + name + ".class");
                 }

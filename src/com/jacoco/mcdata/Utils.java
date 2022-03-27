@@ -6,8 +6,15 @@ import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jd.gui.service.platform.PlatformService;
+
+import com.jacoco.mcdata.controller.ProgressController;
+
+import cuchaz.enigma.ProgressListener;
+import cuchaz.enigma.gui.dialog.ProgressDialog.ProgressRunnable;
 
 public class Utils {
 
@@ -86,5 +93,30 @@ public class Utils {
 		    	workingDirectory += "/Library/Application Support";
 		}
 		return Paths.get(workingDirectory).resolve(".minecraft").toFile();
+	}
+	
+	public static void mapProgressListener(ProgressRunnable runnable) {
+		CompletableFuture.runAsync(() -> {
+			try {
+				AtomicInteger workInCurrent = new AtomicInteger(0);
+				ProgressController controller = ProgressController.getInstance();
+				controller.newProgress(0);
+				runnable.run(new ProgressListener() {
+					public void init(int totalWork, String s) {
+						controller.increaseMaximum(totalWork);
+						workInCurrent.set(0);
+					}
+					
+					public void step(int numDone, String s) {
+						int value = numDone - workInCurrent.get();
+						workInCurrent.set(numDone);
+						controller.step(value);
+					}
+				});
+				controller.finishProgress();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
 	}
 }

@@ -7,13 +7,9 @@
 
 package org.jd.gui.service.indexer;
 
-import org.jd.gui.api.API;
-import org.jd.gui.api.model.Container;
-import org.jd.gui.api.model.Indexes;
-import org.jd.gui.util.exception.ExceptionUtil;
-import org.objectweb.asm.*;
-import org.objectweb.asm.signature.SignatureReader;
-import org.objectweb.asm.signature.SignatureVisitor;
+import static org.objectweb.asm.ClassReader.SKIP_CODE;
+import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
+import static org.objectweb.asm.ClassReader.SKIP_FRAMES;
 
 import java.io.InputStream;
 import java.util.Collection;
@@ -21,7 +17,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static org.objectweb.asm.ClassReader.*;
+import org.jd.gui.Constants;
+import org.jd.gui.api.API;
+import org.jd.gui.api.model.Container;
+import org.jd.gui.api.model.Indexes;
+import org.jd.gui.util.exception.ExceptionUtil;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.TypePath;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 
 /**
  * Unsafe thread implementation of class file indexer.
@@ -165,7 +173,7 @@ public class ClassFileIndexerProvider extends AbstractIndexerProvider {
 
         protected String name;
 
-        public ClassIndexer() { super(Opcodes.ASM7); }
+        public ClassIndexer() { super(Constants.ASM_VERSION); }
 
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -222,13 +230,13 @@ public class ClassFileIndexerProvider extends AbstractIndexerProvider {
     }
 
     protected class SignatureIndexer extends SignatureVisitor {
-        SignatureIndexer() { super(Opcodes.ASM7); }
+        SignatureIndexer() { super(Constants.ASM_VERSION); }
 
         @Override public void visitClassType(String name) { typeReferenceSet.add(name); }
     }
 
     protected class AnnotationIndexer extends AnnotationVisitor {
-        public AnnotationIndexer() { super(Opcodes.ASM7); }
+        public AnnotationIndexer() { super(Constants.ASM_VERSION); }
 
         @Override public void visitEnum(String name, String desc, String value) { descriptorSet.add(desc); }
 
@@ -243,7 +251,7 @@ public class ClassFileIndexerProvider extends AbstractIndexerProvider {
         protected AnnotationIndexer annotationIndexer;
 
         public FieldIndexer(AnnotationIndexer annotationIndexer) {
-            super(Opcodes.ASM7);
+            super(Constants.ASM_VERSION);
             this.annotationIndexer = annotationIndexer;
         }
 
@@ -264,7 +272,7 @@ public class ClassFileIndexerProvider extends AbstractIndexerProvider {
         protected AnnotationIndexer annotationIndexer;
 
         public MethodIndexer(AnnotationIndexer annotationIndexer) {
-            super(Opcodes.ASM7);
+            super(Constants.ASM_VERSION);
             this.annotationIndexer = annotationIndexer;
         }
 
