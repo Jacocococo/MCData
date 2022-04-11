@@ -13,19 +13,21 @@ import java.nio.file.Path;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import com.jacoco.mcdata.version.Versions;
+import com.jacoco.mcdata.version.Version;
 
 import cuchaz.enigma.ProgressListener; 
 
 public class ObfuscationMap {
 
+	private Version version;
 	private Path fileMap;
 	private URL mapurl;
 		
-	public ObfuscationMap(Path path) {
+	public ObfuscationMap(Version version) {
+		this.version = version;
 		try {
 			JSONObject jo = (JSONObject) ((JSONObject)  ((JSONObject) 
-					JSONValue.parse(new FileReader(path.toString()))).get("downloads")).get("client_mappings");
+					JSONValue.parse(new FileReader(version.getJson().toString()))).get("downloads")).get("client_mappings");
 			this.mapurl = new URL(jo.get("url").toString());
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -37,7 +39,7 @@ public class ObfuscationMap {
    			progress.init(3, "Downloading Obfuscation Map as a Temp File");
 			
    			progress.step(1, "Creating Temp File");
-   			fileMap = Files.createTempFile(tmpDir, Versions.getLatest().getName() + "_", ".txt");
+   			fileMap = Files.createTempFile(tmpDir, version.getName() + "_", ".txt");
    			fileMap.toFile().deleteOnExit();
    			
 	   		progress.step(2, "Connecting to URL");

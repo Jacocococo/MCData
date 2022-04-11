@@ -57,7 +57,13 @@ public class Deobfuscation {
 	}
 	
 	public void export(Path exportPath, Version version) {
-		version.setExportedJar(exportPath.resolve(version.getName() + ".jar"));
+		Path exportedJar = exportPath.resolve(version.getName() + ".jar");
+		version.setExportedJar(exportedJar);
+		
+		if(exportedJar.toFile().exists()) {
+			onFinish.run();
+			return;
+		}
 
 		Utils.mapProgressListener(progress -> {
 			EnigmaProject project = openJar(version.getOriginalJar(), (ClassProvider) new ClasspathClassProvider(), progress);

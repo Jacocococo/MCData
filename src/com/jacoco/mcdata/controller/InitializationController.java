@@ -48,7 +48,9 @@ public class InitializationController {
 				fd.setVisible(true);
 				Path path = Paths.get(fd.getDirectory());
 				((JTextField) e.getComponent()).setText(path.toString());
-				Versions.add(new Version(path));
+				Version version = new Version(path);
+				Versions.removeIfUnused(Versions.getCurrent());
+				Versions.add(version);
 			} catch (NullPointerException ex) {}
 		}
 	};

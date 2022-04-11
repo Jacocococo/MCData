@@ -16,7 +16,7 @@ public class Version {
 		this.name = path.getFileName().toString();
 		this.oJar = path.resolve(name + ".jar");
 		this.json = path.resolve(name + ".json");
-		this.obfuscationMap = new ObfuscationMap(this.json);
+		this.obfuscationMap = new ObfuscationMap(this);
 	}
 
 	public String getName() {
@@ -57,5 +57,10 @@ public class Version {
 
 	public void setObfuscationMap(ObfuscationMap obfuscationMap) {
 		this.obfuscationMap = obfuscationMap;
+	}
+	
+	@Override
+	public String toString() {
+		return this.name;
 	}
 }

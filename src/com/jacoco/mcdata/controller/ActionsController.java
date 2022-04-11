@@ -8,6 +8,9 @@ import com.jacoco.mcdata.files.Deobfuscation;
 import com.jacoco.mcdata.version.Versions;
 import com.jacoco.mcdata.view.ActionsView;
 
+import cuchaz.enigma.EnigmaProfile;
+import cuchaz.enigma.translation.mapping.serde.MappingFormat;
+
 public class ActionsController {
 
 	private InitializationController initController;
@@ -18,12 +21,16 @@ public class ActionsController {
 	
 	private ActionsView view;
 
-	public ActionsController(InitializationController initController, JDController jdController, Config cfg, Deobfuscation deobf, Runnable close) {
+	public ActionsController(InitializationController initController,
+			JDController jdController,
+			Config cfg,
+			Runnable close) {
 		this.initController = initController;
 		this.jdController = jdController;
 		this.cfg = cfg;
-		this.deobf = deobf;
 		this.close = close;
+		
+		this.deobf = new Deobfuscation(MappingFormat.PROGUARD, EnigmaProfile.EMPTY);;
 		
 		this.view = new ActionsView(cfg, exportListener, e -> this.close.run());
 	}
@@ -36,8 +43,8 @@ public class ActionsController {
 		cfg.setExportPath(initController.getExportPath());
 		Path exportPath = cfg.getExportPath();
 		deobf.addOnFinishEvent(() -> {
-			 jdController.loadFile(exportPath.resolve(Versions.getLatest().getExportedJar()).toFile());
+			 jdController.loadFile(exportPath.resolve(Versions.getCurrent().getExportedJar()).toFile());
 		});
-		deobf.export(exportPath, Versions.getLatest());
+		deobf.export(exportPath, Versions.getCurrent());
 	};
 }

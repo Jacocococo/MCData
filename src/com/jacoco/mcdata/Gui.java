@@ -25,10 +25,7 @@ public class Gui {
 	private JPanel mainPanel;
 	private final Dimension DEFAULT_SIZE = new Dimension(1000, 800);
 	
-	private Deobfuscation deobf;
-	
 	public Gui(Config cfg) {
-		this.deobf = new Deobfuscation(MappingFormat.PROGUARD, EnigmaProfile.EMPTY);
 		this.frame = new JFrame("MCData");
 		this.mainPanel = new JPanel();
 
@@ -60,7 +57,7 @@ public class Gui {
 				view -> addView(view, BorderLayout.CENTER),
 				view -> removeView(view, true));
 		mainPanel.add(east, BorderLayout.EAST);
-		ActionsController actionsController = new ActionsController(initController, jdController, cfg, deobf, this::onClose);
+		ActionsController actionsController = new ActionsController(initController, jdController, cfg, this::onClose);
 		addView(actionsController.getView(), BorderLayout.SOUTH);
 		
 		frame.add(mainPanel, BorderLayout.CENTER);
