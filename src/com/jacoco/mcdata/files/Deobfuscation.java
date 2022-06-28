@@ -1,8 +1,14 @@
 package com.jacoco.mcdata.files;
 
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
@@ -11,6 +17,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -66,6 +74,7 @@ public class Deobfuscation {
 		}
 
 		Utils.mapProgressListener(progress -> {
+			downloadJarIfMissing(version, progress);
 			EnigmaProject project = openJar(version.getOriginalJar(), (ClassProvider) new ClasspathClassProvider(), progress);
 			
 			Path downloadedMap = version.getObfuscationMap().downloadFile(Main.tmpDir, progress);
@@ -78,6 +87,10 @@ public class Deobfuscation {
 			
 			onFinish.run();
 		});
+	}
+	
+	public void addOnFinishEvent(Runnable runnable) {
+		this.onFinish = runnable;
 	}
 	
 	private EnigmaProject openJar(Path path, ClassProvider libraryClassProvider, ProgressListener progress) throws IOException {
@@ -153,7 +166,23 @@ public class Deobfuscation {
 		};
 	}
 	
-	public void addOnFinishEvent(Runnable runnable) {
-		this.onFinish = runnable;
+	private void downloadJarIfMissing(Version version, ProgressListener progress) throws IOException {
+		if(Files.exists(version.getOriginalJar()))
+			return;
+		
+		progress.init(3, "Downloading Game Jar");
+		
+		progress.step(1, "Obtaining URL");
+		JSONObject jo = (JSONObject) ((JSONObject) ((JSONObject)
+				JSONValue.parse(new FileReader(version.getJson().toString()))).get("downloads")).get("client");
+		
+		progress.step(2, "Connecting to URL");
+		ReadableByteChannel rbc = Channels.newChannel(new URL(jo.get("url").toString()).openStream());
+		
+		progress.step(3, "Writing File");
+		FileOutputStream fos = new FileOutputStream(version.getOriginalJar().toFile());
+		fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+		fos.close();
+		rbc.close();
 	}
 }

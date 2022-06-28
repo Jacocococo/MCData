@@ -26,7 +26,7 @@ public class ObfuscationMap {
 	public ObfuscationMap(Version version) {
 		this.version = version;
 		try {
-			JSONObject jo = (JSONObject) ((JSONObject)  ((JSONObject) 
+			JSONObject jo = (JSONObject) ((JSONObject) ((JSONObject)
 					JSONValue.parse(new FileReader(version.getJson().toString()))).get("downloads")).get("client_mappings");
 			this.mapurl = new URL(jo.get("url").toString());
 		} catch (IOException e) {
