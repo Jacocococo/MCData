@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.jd.gui.service.platform.PlatformService;
+
 import com.jacoco.mcdata.files.Config;
 
 public class Main {
@@ -19,7 +21,11 @@ public class Main {
 		
 		Config cfg = new Config();
 		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			if (PlatformService.getInstance().isLinux()) {
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+			} else {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			}
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e) {
 			e.printStackTrace();
