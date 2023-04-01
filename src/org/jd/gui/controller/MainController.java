@@ -196,8 +196,10 @@ public class MainController implements API {
             Component tempMainFrame = mainView.getMainFrame();
             if(tempMainFrame instanceof JFrame)
                 mainFrame = (JFrame) tempMainFrame;
-            else if(tempMainFrame instanceof JInternalFrame)
+            else if(tempMainFrame instanceof JInternalFrame) {
+            	mainFrame = (JFrame) internalContainer.getRootPane().getParent();
                 internalContainer.add(mainView.getMainFrame());
+            }
             saveAllSourcesController = new SaveAllSourcesController(MainController.this, mainFrame);
             containerChangeListeners.add(openTypeController = new OpenTypeController(MainController.this, executor, mainFrame));
             containerChangeListeners.add(openTypeHierarchyController = new OpenTypeHierarchyController(MainController.this, executor, mainFrame));
@@ -541,16 +543,25 @@ public class MainController implements API {
             this.mainView = createView(MainView.INTERNAL, mainTabbedPanel, toolBar, menuBar);
         else if(comp instanceof JInternalFrame)
             this.mainView = createView(MainView.EXTERNAL, mainTabbedPanel, toolBar, menuBar);
-        SwingUtil.invokeLater(() -> {
-            Component newComp = mainView.getMainFrame();
-            if(newComp instanceof JFrame)
-                mainView.show(configuration.getMainWindowLocation(), configuration.getMainWindowSize(), configuration.isMainWindowMaximize());
-            else if(newComp instanceof JInternalFrame) {
-                internalContainer.add(newComp);
-                newComp.setVisible(true);
-            }
-        });
 		toggleInternal.run();
+        Component newComp = mainView.getMainFrame();
+        JFrame mainFrame = null;
+        if(newComp instanceof JFrame) {
+            mainView.show(configuration.getMainWindowLocation(), configuration.getMainWindowSize(), configuration.isMainWindowMaximize());
+            mainFrame = (JFrame) newComp;
+        } else if(newComp instanceof JInternalFrame) {
+            internalContainer.add(newComp);
+            newComp.setVisible(true);
+        	mainFrame = (JFrame) internalContainer.getRootPane().getParent();
+        }
+        saveAllSourcesController = new SaveAllSourcesController(MainController.this, mainFrame);
+        containerChangeListeners.add(openTypeController = new OpenTypeController(MainController.this, executor, mainFrame));
+        containerChangeListeners.add(openTypeHierarchyController = new OpenTypeHierarchyController(MainController.this, executor, mainFrame));
+        goToController = new GoToController(configuration, mainFrame);
+        containerChangeListeners.add(searchInConstantPoolsController = new SearchInConstantPoolsController(MainController.this, executor, mainFrame));
+        preferencesController = new PreferencesController(configuration, mainFrame, PreferencesPanelService.getInstance().getProviders());
+        selectLocationController = new SelectLocationController(MainController.this, mainFrame);
+        aboutController = new AboutController(mainFrame);
     }
 
     // --- ComponentListener --- //

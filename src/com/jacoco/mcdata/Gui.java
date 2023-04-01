@@ -14,10 +14,6 @@ import com.jacoco.mcdata.controller.InitializationController;
 import com.jacoco.mcdata.controller.JDController;
 import com.jacoco.mcdata.controller.ProgressController;
 import com.jacoco.mcdata.files.Config;
-import com.jacoco.mcdata.files.Deobfuscation;
-
-import cuchaz.enigma.EnigmaProfile;
-import cuchaz.enigma.translation.mapping.serde.MappingFormat;
 
 public class Gui {
 
