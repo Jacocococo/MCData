@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="resources"/>
+	<classpathentry kind="lib" path="libs/antlr-4.5-complete.jar"/>
+	<classpathentry kind="lib" path="libs/enigma-swing-0.25.0-all.jar"/>
+	<classpathentry kind="lib" path="libs/jd-core-1.1.4.jar"/>
+	<classpathentry kind="lib" path="libs/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="libs/NativeFileDialog.jar"/>
+	<classpathentry kind="lib" path="libs/rsyntaxtextarea-3.0.4.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

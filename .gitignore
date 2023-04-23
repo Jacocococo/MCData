@@ -2,12 +2,7 @@
 bin/
 local.properties
 .settings/
-.classpath
 Sources
 
 # Locally stored "Eclipse launch configurations"
-<<<<<<< HEAD
 *.launch
-=======
-*.launch
->>>>>>> d88f6d9 (Java 17 and new progress bar)
