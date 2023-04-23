@@ -10,7 +10,7 @@ package org.jd.gui.service.platform;
 public class PlatformService {
 	protected static final PlatformService PLATFORM_SERVICE = new PlatformService();
 
-	public enum OS { Linux, MacOSX, Windows }
+	public enum OS { Unknown, Linux, MacOSX, Windows }
 
 	protected OS os;
 
@@ -19,16 +19,18 @@ public class PlatformService {
 
 		if (osName.contains("windows")) {
 			os = OS.Windows;
-		} else if (osName.contains("mac os")) {
+		} else if (osName.contains("mac")) {
 			os = OS.MacOSX;
-		} else {
+		} else if (osName.contains("linux")) {
 			os = OS.Linux;
+		} else {
+			os = OS.Unknown;
 		}
 	}
 
 	public static PlatformService getInstance() { return PLATFORM_SERVICE; }
 
-	public OS getOs() { return os; }
+	public OS getOS() { return os; }
 
 	public boolean isLinux() { return os == OS.Linux; }
 	public boolean isMac() { return os == OS.MacOSX; }

@@ -113,7 +113,7 @@ public class MainTabbedPanel<T extends JComponent & UriGettable> extends TabbedP
 	}
 
 	protected String getFileManagerLabel() {
-        switch (PlatformService.getInstance().getOs()) {
+        switch (PlatformService.getInstance().getOS()) {
             case Linux:
                 return "your file manager";
             case MacOSX:

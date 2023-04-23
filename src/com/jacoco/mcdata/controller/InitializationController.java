@@ -1,19 +1,16 @@
 package com.jacoco.mcdata.controller;
 
-import java.awt.FileDialog;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JTextField;
 
 import com.jacoco.mcdata.files.Config;
 import com.jacoco.mcdata.version.Version;
 import com.jacoco.mcdata.version.Versions;
 import com.jacoco.mcdata.view.InitializationView;
+import com.jacoco.nfd.NativeFileDialog;
 
 public class InitializationController {
 
@@ -43,27 +40,23 @@ public class InitializationController {
 	
 	private MouseAdapter chooseVersion = new MouseAdapter() {
 		public void mouseClicked(MouseEvent e) {
-			try {
-				FileDialog fd = new FileDialog(new JFrame(), "Choose Folder");
-				fd.setVisible(true);
-				Path path = Paths.get(fd.getDirectory());
-				((JTextField) e.getComponent()).setText(path.toString());
-				Version version = new Version(path);
-				Versions.removeIfUnused(Versions.getCurrent());
-				Versions.add(version);
-			} catch (NullPointerException ex) {}
+			String path = NativeFileDialog.getPath(null);
+			if (path == null)
+				return;
+			((JTextField) e.getComponent()).setText(path);
+			Version version = new Version(Paths.get(path));
+			Versions.removeIfUnused(Versions.getCurrent());
+			Versions.add(version);
 		}
 	};
 	
 	private MouseAdapter selectExportPath = new MouseAdapter() {
 		public void mouseClicked(MouseEvent e) {
-			try {
-				JFileChooser fd = new JFileChooser("Choose File");
-			    fd.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			    fd.showOpenDialog(view);
-				((JTextField) e.getComponent()).setText(fd.getSelectedFile().toString());
-				cfg.setExportPath(fd.getSelectedFile().toString());
-			} catch (NullPointerException ex) {}
+			String path = NativeFileDialog.getPath(null);
+			if (path == null)
+				return;
+			((JTextField) e.getComponent()).setText(path);
+			cfg.setExportPath(path);
 		}
 	};
 }
