@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLayer;
@@ -43,7 +42,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 
 import org.jd.gui.api.API;
@@ -91,6 +89,7 @@ import org.jd.gui.view.MainView;
 import org.jd.gui.view.component.panel.MainTabbedPanel;
 
 import com.jacoco.mcdata.controller.ProgressController;
+import com.jacoco.nfd.NativeFileDialog;
 
 @SuppressWarnings("rawtypes")
 public class MainController implements API {
@@ -210,7 +209,6 @@ public class MainController implements API {
             aboutController = new AboutController(mainFrame);
             sourceLoaderService = new SourceLoaderService();
             // Background class loading
-            new JFileChooser().addChoosableFileFilter(new FileNameExtensionFilter("", "dummy"));
             FileSystemView.getFileSystemView().isFileSystemRoot(new File("dummy"));
             new JLayer();
             ProgressController.getInstance().newProgress(1);
@@ -238,23 +236,21 @@ public class MainController implements API {
 
         sb.setLength(sb.length()-2);
 
-        String description = sb.toString();
-        String[] array = extensions.toArray(new String[0]);
-        JFileChooser chooser = new JFileChooser();
-
-        chooser.removeChoosableFileFilter(chooser.getFileFilter());
-        chooser.addChoosableFileFilter(new FileNameExtensionFilter("All files (" + description + ")", array));
-
+        StringBuilder filter = new StringBuilder();
         for (String extension : extensions) {
-            FileLoader loader = loaders.get(extension);
-            chooser.addChoosableFileFilter(new FileNameExtensionFilter(loader.getDescription(), loader.getExtensions()));
+            filter.append(extension);
+            filter.append(";");
         }
 
-        chooser.setCurrentDirectory(configuration.getRecentLoadDirectory());
+        if (!filter.isEmpty())
+            filter.deleteCharAt(filter.length() - 1);
 
-        if (chooser.showOpenDialog(mainView.getMainFrame()) == JFileChooser.APPROVE_OPTION) {
-            configuration.setRecentLoadDirectory(chooser.getCurrentDirectory());
-            openFile(chooser.getSelectedFile());
+        String path = NativeFileDialog.getFile(configuration.getRecentLoadDirectory().toString(), filter.toString());
+
+        if (path != null) {
+            File file = new File(path);
+            configuration.setRecentLoadDirectory(file.getParentFile());
+            openFile(file);
         }
 	}
 
@@ -264,15 +260,16 @@ public class MainController implements API {
 
     protected void onSaveSource() {
         if (currentPage instanceof ContentSavable) {
-            JFileChooser chooser = new JFileChooser();
             Component mainFrame = mainView.getMainFrame();
 
-            chooser.setSelectedFile(new File(configuration.getRecentSaveDirectory(), ((ContentSavable)currentPage).getFileName()));
+            String selectedPath = NativeFileDialog.saveFile(
+                    new File(configuration.getRecentSaveDirectory(), ((ContentSavable)currentPage).getFileName()).toString(),
+                    null);
 
-            if (chooser.showSaveDialog(mainFrame) == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = chooser.getSelectedFile();
+            if (selectedPath != null) {
+                File selectedFile = new File(selectedPath);
 
-                configuration.setRecentSaveDirectory(chooser.getCurrentDirectory());
+                configuration.setRecentSaveDirectory(selectedFile.getParentFile());
 
                 if (selectedFile.exists()) {
                     String title = "Are you sure?";
@@ -302,15 +299,16 @@ public class MainController implements API {
 
             if (currentPanel instanceof SourcesSavable) {
                 SourcesSavable sourcesSavable = (SourcesSavable)currentPanel;
-                JFileChooser chooser = new JFileChooser();
                 Component mainFrame = mainView.getMainFrame();
 
-                chooser.setSelectedFile(new File(configuration.getRecentSaveDirectory(), sourcesSavable.getSourceFileName()));
+	            String selectedPath = NativeFileDialog.saveFile(
+	                    new File(configuration.getRecentSaveDirectory(), sourcesSavable.getSourceFileName()).toString(),
+	                    null);
 
-                if (chooser.showSaveDialog(mainFrame) == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = chooser.getSelectedFile();
+                if (selectedPath != null) {
+                    File selectedFile = new File(selectedPath);
 
-                    configuration.setRecentSaveDirectory(chooser.getCurrentDirectory());
+                    configuration.setRecentSaveDirectory(selectedFile.getParentFile());
 
                     if (selectedFile.exists()) {
                         String title = "Are you sure?";
